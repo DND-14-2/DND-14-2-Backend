@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  application:
+    name: demo
+  datasource:
+    url: jdbc:mysql://localhost:3306/dnd
+    username: dnd
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: create
+
