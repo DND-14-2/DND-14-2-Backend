@@ -1,6 +1,7 @@
 package com.example.demo.infrastructure.oauth.google;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -19,7 +20,7 @@ public class GoogleIdTokenVerifierService {
         ).setAudience(List.of(clientId)).build();
     }
 
-    public GoogleIdToken.Payload verify(String idToken) {
+    public Payload verify(String idToken) {
         try {
             GoogleIdToken token = verifier.verify(idToken);
             if (token == null) {
