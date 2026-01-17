@@ -21,7 +21,7 @@ public class GoogleTokenExchanger implements TokenExchanger {
     public GoogleTokenExchanger(RestClient googleOauthRestClient,
                                 @Value("${google.client-id}") String clientId,
                                 @Value("${google.client-secret}") String clientSecret,
-                                @Value("${google.redirection-url}") String redirectUri) {
+                                @Value("${google.redirect-uri}") String redirectUri) {
         this.googleOauthRestClient = googleOauthRestClient;
         this.clientId = clientId;
         this.clientSecret = clientSecret;
