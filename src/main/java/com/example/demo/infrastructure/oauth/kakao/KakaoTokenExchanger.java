@@ -26,7 +26,7 @@ public class KakaoTokenExchanger implements TokenExchanger {
         form.add("client_secret", kakaoOauthProperties.clientSecret());
 
         return kakaoTokenRestClient.post()
-                .uri("")
+                .uri("/oauth/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(form)
