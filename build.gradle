@@ -1,8 +1,8 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.9'
-	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.asciidoctor.jvm.convert' version '4.0.5'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.9'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.epages.restdocs-api-spec' version '0.19.4'
 }
 
 group = 'com.example'
@@ -10,51 +10,99 @@ version = '0.0.1-SNAPSHOT'
 description = 'Demo project for Spring Boot'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 ext {
-	set('snippetsDir', file("build/generated-snippets"))
+    // REST Docs가 생성하는 snippets 출력 경로
+    snippetsDir = file('build/generated-snippets')
+
+    // 실행 시 활성화할 Spring profile
+    runProfile = (project.findProperty('runProfile')
+            ?: project.findProperty('profile')
+            ?: System.getenv('SPRING_PROFILES_ACTIVE')
+            ?: 'local') as String
+
+    // Swagger UI의 "Try it out" 기본 서버 주소
+    openApiServer = (project.findProperty('openApiServer')
+            ?: System.getenv('OPENAPI_SERVER')
+            ?: 'http://localhost:8080') as String
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.mysql:mysql-connector-j'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-	implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
-	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
-	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.13.0'
 
-	// OPEN ID
-	implementation 'com.nimbusds:nimbus-jose-jwt:10.7'
+    // OIDC
+    implementation 'com.nimbusds:nimbus-jose-jwt:10.7'
 
+    // SWAGGER
+    testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
+    testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 }
 
+openapi3 {
+    server = openApiServer
+
+    title = "Pickle API"
+    description = "Pickle REST API"
+    format = 'yaml'
+
+    outputDirectory = layout.buildDirectory.dir('api-spec').get().asFile.path
+}
+
+// 1) REST Docs snippets가 필요하므로 openapi3 생성 전에 test가 먼저 돌아야 함
+tasks.matching { it.name == 'openapi3' }.configureEach {
+    dependsOn tasks.named('test')
+}
+
+// 2) 생성된 openapi3.yaml을 빌드 산출물에 포함될 정적 리소스로 복사
+tasks.register('copyToSwagger', Copy) {
+    dependsOn 'openapi3'
+    from layout.buildDirectory.file('api-spec/openapi3.yaml')
+    into layout.buildDirectory.dir('generated/swagger-ui')
+    rename { 'openapi3.yaml' }
+}
+
+// 3) 정적 리소스에 포함 (앱 실행 시 /swagger-ui/openapi3.yaml 로 서빙됨)
+tasks.named('processResources') {
+    from(layout.buildDirectory.dir('generated/swagger-ui')) {
+        into 'static/swagger-ui'
+    }
+}
+
+// 4) 테스트/앱 실행 시 같은 profile을 쓰도록 통일
 tasks.named('test') {
-	outputs.dir snippetsDir
-	useJUnitPlatform()
+    useJUnitPlatform()
+    systemProperty 'spring.profiles.active', runProfile
+    outputs.dir snippetsDir
 }
 
-tasks.named('asciidoctor') {
-	inputs.dir snippetsDir
-	dependsOn test
+tasks.named('bootRun') {
+    dependsOn tasks.named('copyToSwagger')
+    systemProperty 'spring.profiles.active', runProfile
 }
+
