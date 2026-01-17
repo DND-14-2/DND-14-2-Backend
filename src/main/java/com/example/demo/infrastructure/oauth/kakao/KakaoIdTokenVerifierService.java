@@ -1,6 +1,6 @@
 package com.example.demo.infrastructure.oauth.kakao;
 
-import com.example.demo.application.IdTokenVerifier;
+import com.example.demo.application.oauth.IdTokenVerifier;
 import com.example.demo.application.dto.OauthUserInfo;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;

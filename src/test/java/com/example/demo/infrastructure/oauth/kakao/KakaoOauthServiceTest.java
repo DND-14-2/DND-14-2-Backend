@@ -1,7 +1,7 @@
 package com.example.demo.infrastructure.oauth.kakao;
 
-import com.example.demo.application.IdTokenVerifier;
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.oauth.IdTokenVerifier;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
 import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.domain.Provider;

@@ -1,7 +1,7 @@
 package com.example.demo.infrastructure.oauth.kakao;
 
-import com.example.demo.application.IdTokenVerifier;
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.oauth.IdTokenVerifier;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
 import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.application.oauth.OauthService;
@@ -21,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class KakaoOauthService implements OauthService {
     private final UserRepository userRepository;
     private final TokenExchanger kakaoTokenExchanger;
-    private final IdTokenVerifier kakaoIdTokenVerifier;
+    private final IdTokenVerifier kakaoIdTokenVerifierService;
 
     @Override
     public User getUserInfo(String authorizationCode) {
         OauthToken oauthToken = kakaoTokenExchanger.exchange(authorizationCode);
-        OauthUserInfo userInfo = kakaoIdTokenVerifier.verify(oauthToken.idToken());
+        OauthUserInfo userInfo = kakaoIdTokenVerifierService.verify(oauthToken.idToken());
 
         return userRepository.findByProviderAndProviderId(Provider.KAKAO, userInfo.providerId())
                 .orElseGet(() -> userRepository.save(

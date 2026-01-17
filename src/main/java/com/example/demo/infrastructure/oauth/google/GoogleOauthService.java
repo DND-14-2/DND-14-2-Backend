@@ -12,22 +12,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class GoogleOauthService implements OauthService {
 
-    private final TokenExchanger tokenExchanger;
+    private final TokenExchanger googleTokenExchanger;
     private final GoogleIdTokenVerifierService googleIdTokenVerifierService;
     private final UserRepository userRepository;
 
-    public GoogleOauthService(TokenExchanger tokenExchanger,
+    public GoogleOauthService(TokenExchanger googleTokenExchanger,
                               GoogleIdTokenVerifierService googleIdTokenVerifierService,
                               UserRepository userRepository
     ) {
-        this.tokenExchanger = tokenExchanger;
+        this.googleTokenExchanger = googleTokenExchanger;
         this.googleIdTokenVerifierService = googleIdTokenVerifierService;
         this.userRepository = userRepository;
     }
 
     @Override
     public User getUserInfo(String authorizationCode) {
-        OauthToken oauthToken = tokenExchanger.exchange(authorizationCode);
+        OauthToken oauthToken = googleTokenExchanger.exchange(authorizationCode);
         if (oauthToken == null || oauthToken.idToken() == null) {
             throw new IllegalArgumentException("인가 코드를 토큰으로 교환하는데 실패했습니다. (id_token을 찾을 수 없음)");
         }

@@ -14,7 +14,6 @@ import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
 import com.example.demo.util.AbstractIntegrationTest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 class GoogleOauthServiceTest extends AbstractIntegrationTest {
 
     @MockitoBean
-    private TokenExchanger tokenExchanger;
+    private TokenExchanger googleTokenExchanger;
 
     @MockitoBean
     private GoogleIdTokenVerifierService googleIdTokenVerifierService;
@@ -46,7 +45,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         OauthToken oauthToken = new OauthToken(idToken, "access-token", "refresh-token");
         OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
-        given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
+        given(googleTokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
         given(googleIdTokenVerifierService.verify(idToken)).willReturn(oauthUserInfo);
 
         // when
@@ -61,7 +60,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
                 assertThat(user.getId()).isEqualTo(result.getId());
             });
 
-        verify(tokenExchanger).exchange(authorizationCode);
+        verify(googleTokenExchanger).exchange(authorizationCode);
         verify(googleIdTokenVerifierService).verify(idToken);
     }
 
@@ -82,7 +81,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         OauthToken oauthToken = new OauthToken(idToken, "access-token", "refresh-token");
         OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
-        given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
+        given(googleTokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
         given(googleIdTokenVerifierService.verify(idToken)).willReturn(oauthUserInfo);
 
         // when
@@ -92,7 +91,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(existingUser.getId());
 
-        verify(tokenExchanger).exchange(authorizationCode);
+        verify(googleTokenExchanger).exchange(authorizationCode);
         verify(googleIdTokenVerifierService).verify(idToken);
     }
 
@@ -100,14 +99,14 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
     void OauthToken이_null일_때_예외를_던진다() {
         // given
         String authorizationCode = "test-authorization-code";
-        given(tokenExchanger.exchange(authorizationCode)).willReturn(null);
+        given(googleTokenExchanger.exchange(authorizationCode)).willReturn(null);
 
         // when & then
         assertThatThrownBy(() -> sut.getUserInfo(authorizationCode))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("인가 코드를 토큰으로 교환하는데 실패했습니다. (id_token을 찾을 수 없음)");
 
-        verify(tokenExchanger).exchange(authorizationCode);
+        verify(googleTokenExchanger).exchange(authorizationCode);
         verify(googleIdTokenVerifierService, never()).verify(anyString());
     }
 
@@ -117,14 +116,14 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         String authorizationCode = "test-authorization-code";
         OauthToken oauthToken = new OauthToken(null, "access-token", "refresh-token");
 
-        given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
+        given(googleTokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
 
         // when & then
         assertThatThrownBy(() -> sut.getUserInfo(authorizationCode))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("인가 코드를 토큰으로 교환하는데 실패했습니다. (id_token을 찾을 수 없음)");
 
-        verify(tokenExchanger).exchange(authorizationCode);
+        verify(googleTokenExchanger).exchange(authorizationCode);
         verify(googleIdTokenVerifierService, never()).verify(anyString());
     }
 
@@ -136,7 +135,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         String idToken = "invalid-id-token";
         OauthToken oauthToken = new OauthToken(idToken, "access-token", "refresh-token");
 
-        given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
+        given(googleTokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
         given(googleIdTokenVerifierService.verify(idToken))
             .willThrow(new IllegalArgumentException("ID토큰 검증에 실패했습니다."));
 
@@ -145,7 +144,7 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("ID토큰 검증에 실패했습니다.");
 
-        verify(tokenExchanger).exchange(authorizationCode);
+        verify(googleTokenExchanger).exchange(authorizationCode);
         verify(googleIdTokenVerifierService).verify(idToken);
     }
 }

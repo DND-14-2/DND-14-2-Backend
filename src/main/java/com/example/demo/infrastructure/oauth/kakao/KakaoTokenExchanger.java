@@ -1,6 +1,6 @@
 package com.example.demo.infrastructure.oauth.kakao;
 
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
