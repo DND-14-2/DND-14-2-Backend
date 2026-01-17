@@ -1,8 +1,7 @@
 package com.example.demo.infrastructure.oauth.google;
 
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;

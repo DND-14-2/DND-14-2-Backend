@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
+import com.example.demo.application.dto.OauthUserInfo;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -33,26 +34,25 @@ class GoogleIdTokenVerifierServiceTest {
     }
 
     @Test
-    void 유효한_ID_토큰을_검증하고_Payload를_반환한다() throws Exception {
+    void 유효한_ID_토큰을_검증하고_OauthUserInfo를_반환한다() throws Exception {
         // given
         String idToken = "valid-id-token";
         Payload payload = new Payload();
         payload.setSubject("google-123456");
         payload.setEmail("test@example.com");
-        payload.setIssuer("https://accounts.google.com");
         payload.set("picture", "https://example.com/picture.jpg");
+        payload.setIssuer("https://accounts.google.com");
 
         given(googleIdTokenVerifier.verify(idToken)).willReturn(googleIdToken);
         given(googleIdToken.getPayload()).willReturn(payload);
 
         // when
-        Payload result = googleIdTokenVerifierService.verify(idToken);
+        OauthUserInfo oauthUserInfo = googleIdTokenVerifierService.verify(idToken);
 
         // then
-        assertThat(result).isNotNull();
-        assertThat(result.getSubject()).isEqualTo("google-123456");
-        assertThat(result.getEmail()).isEqualTo("test@example.com");
-        assertThat(result.getIssuer()).isEqualTo("https://accounts.google.com");
+        assertThat(oauthUserInfo).isNotNull();
+        assertThat(oauthUserInfo.providerId()).isEqualTo("google-123456");
+        assertThat(oauthUserInfo.email()).isEqualTo("test@example.com");
         verify(googleIdTokenVerifier).verify(idToken);
     }
 

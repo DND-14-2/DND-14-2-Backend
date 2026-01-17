@@ -7,7 +7,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.dto.OauthUserInfo;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
@@ -43,13 +44,10 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         String picture = "https://example.com/picture.jpg";
 
         OauthToken oauthToken = new OauthToken(idToken, "access-token", "refresh-token");
-        Payload payload = new Payload();
-        payload.setSubject(providerId);
-        payload.setEmail(email);
-        payload.set("picture", picture);
+        OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
         given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
-        given(googleIdTokenVerifierService.verify(idToken)).willReturn(payload);
+        given(googleIdTokenVerifierService.verify(idToken)).willReturn(oauthUserInfo);
 
         // when
         User result = sut.getUserInfo(authorizationCode);
@@ -82,13 +80,10 @@ class GoogleOauthServiceTest extends AbstractIntegrationTest {
         );
 
         OauthToken oauthToken = new OauthToken(idToken, "access-token", "refresh-token");
-        Payload payload = new Payload();
-        payload.setSubject(providerId);
-        payload.setEmail(email);
-        payload.set("picture", picture);
+        OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
         given(tokenExchanger.exchange(authorizationCode)).willReturn(oauthToken);
-        given(googleIdTokenVerifierService.verify(idToken)).willReturn(payload);
+        given(googleIdTokenVerifierService.verify(idToken)).willReturn(oauthUserInfo);
 
         // when
         User result = sut.getUserInfo(authorizationCode);

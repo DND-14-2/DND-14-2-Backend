@@ -1,6 +1,6 @@
-package com.example.demo.infrastructure;
+package com.example.demo.infrastructure.oauth.token;
 
-import com.example.demo.application.TokenProvider;
+import com.example.demo.application.oauth.TokenProvider;
 import com.example.demo.application.dto.TokenResponse;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

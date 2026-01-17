@@ -1,12 +1,12 @@
 package com.example.demo.infrastructure.oauth.google;
 
-import com.example.demo.application.OauthService;
-import com.example.demo.application.TokenExchanger;
+import com.example.demo.application.oauth.OauthService;
+import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
+import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken.Payload;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -32,19 +32,15 @@ public class GoogleOauthService implements OauthService {
             throw new IllegalArgumentException("인가 코드를 토큰으로 교환하는데 실패했습니다. (id_token을 찾을 수 없음)");
         }
 
-        Payload result = googleIdTokenVerifierService.verify(oauthToken.idToken());
+        OauthUserInfo oauthUserInfo = googleIdTokenVerifierService.verify(oauthToken.idToken());
 
-        String providerId = result.getSubject();
-        String email = result.getEmail();
-        String picture = (String) result.get("picture");
-
-        User user = userRepository.findByProviderAndProviderId(Provider.GOOGLE, providerId)
+        User user = userRepository.findByProviderAndProviderId(Provider.GOOGLE, oauthUserInfo.providerId())
             .orElseGet(() -> userRepository.save(
                 new User(
-                    email,
-                    picture,
+                    oauthUserInfo.email(),
+                    oauthUserInfo.picture(),
                     Provider.GOOGLE,
-                    providerId
+                    oauthUserInfo.providerId()
                 )
             ));
 

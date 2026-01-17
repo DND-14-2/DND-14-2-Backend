@@ -3,6 +3,7 @@ package com.example.demo.application;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.demo.application.dto.TokenResponse;
+import com.example.demo.application.oauth.AuthService;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.RefreshToken;
 import com.example.demo.domain.RefreshTokenRepository;

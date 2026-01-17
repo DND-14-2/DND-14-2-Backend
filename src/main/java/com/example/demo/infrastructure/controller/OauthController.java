@@ -1,13 +1,12 @@
 package com.example.demo.infrastructure.controller;
 
-import com.example.demo.application.AuthService;
-import com.example.demo.application.OauthService;
+import com.example.demo.application.oauth.AuthService;
+import com.example.demo.application.oauth.OauthService;
 import com.example.demo.application.dto.TokenResponse;
 import com.example.demo.domain.User;
 import com.example.demo.infrastructure.interceptor.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
