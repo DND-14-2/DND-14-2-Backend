@@ -12,8 +12,6 @@ import org.springframework.web.client.RestClient;
 @RequiredArgsConstructor
 public class GoogleTokenExchanger implements TokenExchanger {
 
-    private static final String GRANT_TYPE = "authorization_code";
-
     private final RestClient googleOauthRestClient;
     private final GoogleOauthProperties googleOauthProperties;
 
@@ -34,7 +32,7 @@ public class GoogleTokenExchanger implements TokenExchanger {
         params.add("client_id", googleOauthProperties.clientId());
         params.add("client_secret", googleOauthProperties.clientSecret());
         params.add("redirect_uri", googleOauthProperties.redirectUri());
-        params.add("grant_type", GRANT_TYPE);
+        params.add("grant_type", "authorization_code");
 
         return params;
     }
