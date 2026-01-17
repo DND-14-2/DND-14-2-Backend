@@ -12,6 +12,9 @@ spring:
       hibernate:
         format_sql: true
 
+jwt:
+  secret-key: test+test+test+test+test+test+test+test+test+test
+
 google:
   client-id: test-client-id
   client-secret: test-client-secret
