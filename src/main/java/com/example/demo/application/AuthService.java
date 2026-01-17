@@ -27,4 +27,8 @@ public class AuthService {
 
         return token;
     }
+
+    public void logout(Long userId) {
+        refreshTokenRepository.deleteByUserId(userId);
+    }
 }

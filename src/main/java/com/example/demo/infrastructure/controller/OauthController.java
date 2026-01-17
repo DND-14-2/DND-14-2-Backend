@@ -4,8 +4,10 @@ import com.example.demo.application.AuthService;
 import com.example.demo.application.OauthService;
 import com.example.demo.application.dto.TokenResponse;
 import com.example.demo.domain.User;
+import com.example.demo.infrastructure.interceptor.UserId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseEntity.BodyBuilder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,5 +25,12 @@ public class OauthController {
         TokenResponse tokenResponse = authService.issueTokens(userInfo);
 
         return ResponseEntity.ok(tokenResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@UserId Long userId) {
+        authService.logout(userId);
+
+        return ResponseEntity.noContent().build();
     }
 }
