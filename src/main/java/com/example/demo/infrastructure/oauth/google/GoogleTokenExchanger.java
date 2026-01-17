@@ -2,24 +2,20 @@ package com.example.demo.infrastructure.oauth.google;
 
 import com.example.demo.application.oauth.TokenExchanger;
 import com.example.demo.application.dto.OauthToken;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 
 @Component
+@RequiredArgsConstructor
 public class GoogleTokenExchanger implements TokenExchanger {
 
     private static final String GRANT_TYPE = "authorization_code";
 
     private final RestClient googleOauthRestClient;
     private final GoogleOauthProperties googleOauthProperties;
-
-    public GoogleTokenExchanger(RestClient googleOauthRestClient,
-                                GoogleOauthProperties googleOauthProperties) {
-        this.googleOauthRestClient = googleOauthRestClient;
-        this.googleOauthProperties = googleOauthProperties;
-    }
 
     @Override
     public OauthToken exchange(String authorizationCode) {
