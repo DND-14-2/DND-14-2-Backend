@@ -12,3 +12,8 @@ spring:
     hibernate:
       ddl-auto: create
 
+cloud:
+  aws:
+    region: ap-northeast-2
+    s3:
+      bucket: my-local-bucket-name
