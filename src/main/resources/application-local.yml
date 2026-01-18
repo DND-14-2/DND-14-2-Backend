@@ -33,3 +33,9 @@ oauth:
       issuer: "https://kauth.kakao.com"
       audience: ${oauth.kakao.client-id}
       jwks-uri: "https://kauth.kakao.com/.well-known/jwks.json"
+
+cloud:
+  aws:
+    region: ap-northeast-2
+    s3:
+      bucket: my-local-bucket-name
