@@ -1,6 +1,6 @@
 package com.example.demo.infrastructure.interceptor;
 
-import com.example.demo.application.TokenProvider;
+import com.example.demo.application.oauth.TokenProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
