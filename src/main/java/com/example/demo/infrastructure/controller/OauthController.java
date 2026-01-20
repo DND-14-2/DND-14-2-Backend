@@ -5,6 +5,7 @@ import com.example.demo.application.oauth.AuthService;
 import com.example.demo.application.oauth.OauthServiceFactory;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
+import com.example.demo.infrastructure.controller.dto.AuthTokenWebResponse;
 import com.example.demo.infrastructure.controller.dto.OauthLoginWebRequest;
 import com.example.demo.infrastructure.interceptor.UserId;
 import jakarta.validation.Valid;
@@ -25,12 +26,12 @@ public class OauthController {
 
 
     @PostMapping("/oauth/login")
-    public ResponseEntity<TokenResponse> oauthLogin(@Valid @RequestBody OauthLoginWebRequest request) {
+    public ResponseEntity<AuthTokenWebResponse> oauthLogin(@Valid @RequestBody OauthLoginWebRequest request) {
         Provider provider = request.provider();
         User userInfo = oauthServiceFactory.get(provider).getUserInfo(request.code());
-        TokenResponse tokenResponse = authService.issueTokens(userInfo);
+        TokenResponse token = authService.issueTokens(userInfo);
 
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(AuthTokenWebResponse.from(token));
     }
 
     @PostMapping("/logout")
