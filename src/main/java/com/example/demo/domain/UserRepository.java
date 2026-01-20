@@ -3,6 +3,8 @@ package com.example.demo.domain;
 import java.util.Optional;
 import org.springframework.data.repository.Repository;
 
+import java.util.Optional;
+
 public interface UserRepository extends Repository<User, Long> {
 
     User save(User user);

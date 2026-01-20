@@ -3,7 +3,6 @@ package com.example.demo.infrastructure.oauth.token;
 import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.application.oauth.IdTokenVerifier;
 import com.example.demo.domain.Provider;
-import com.example.demo.infrastructure.oauth.google.OidcVerifyProperties;
 import com.nimbusds.jwt.JWTClaimsSet;
 import java.util.EnumMap;
 import java.util.Map;
@@ -20,6 +19,13 @@ public class OidcIdTokenVerifierService implements IdTokenVerifier {
             properties.google().audience(),
             properties.google().jwksUri(),
             java.time.Clock.systemUTC()
+        ));
+
+        processors.put(Provider.KAKAO, new NimbusOidcIdTokenProcessor(
+                properties.kakao().issuer(),
+                properties.kakao().audience(),
+                properties.kakao().jwksUri(),
+                java.time.Clock.systemUTC()
         ));
     }
 

@@ -4,11 +4,14 @@ import com.example.demo.application.oauth.AuthService;
 import com.example.demo.application.oauth.OauthService;
 import com.example.demo.application.dto.TokenResponse;
 import com.example.demo.domain.User;
+import com.example.demo.infrastructure.controller.dto.AuthTokenWebResponse;
+import com.example.demo.infrastructure.controller.dto.OauthLoginWebRequest;
 import com.example.demo.infrastructure.interceptor.UserId;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,12 +21,12 @@ public class OauthController {
     private final OauthService oauthService;
     private final AuthService authService;
 
-    @PostMapping("/oauth/google")
-    public ResponseEntity<TokenResponse> googleLogin(@RequestParam("code") String authorizationCode) {
-        User userInfo = oauthService.getUserInfo(authorizationCode);
-        TokenResponse tokenResponse = authService.issueTokens(userInfo);
+    @PostMapping("/oauth/login")
+    public ResponseEntity<AuthTokenWebResponse> oauthLogin(@Valid @RequestBody OauthLoginWebRequest request) {
+        User userInfo = oauthService.getUserInfo(request.provider(), request.code());
+        TokenResponse token = authService.issueTokens(userInfo);
 
-        return ResponseEntity.ok(tokenResponse);
+        return ResponseEntity.ok(AuthTokenWebResponse.from(token));
     }
 
     @PostMapping("/logout")
