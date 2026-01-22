@@ -26,16 +26,24 @@ jobs:
       - name: Gradle 빌드 (테스트 제외)
         run: ./gradlew clean build -x test
 
+      - name: Docker Buildx 설정
+        uses: docker/setup-buildx-action@v3
+
       - name: Docker 로그인
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Docker 이미지 빌드 및 푸시
-        run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/backend-app:dev .
-          docker push ${{ secrets.DOCKER_USERNAME }}/backend-app:dev
+      - name: Docker 이미지 빌드 및 푸시 (Multi-platform)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/backend-app:dev
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     name: 개발서버 배포
@@ -73,7 +81,7 @@ jobs:
             echo "⛑️ 헬스 체크..."
             for i in $(seq 1 15); do
               sleep 3
-              SERVER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              SERVER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:80/actuator/health || echo "000")
               if [ "$SERVER_STATUS" -eq 200 ]; then
                 echo "✅ 배포 성공! 서버 동작 중..."
                 exit 0
@@ -84,7 +92,7 @@ jobs:
             
             echo "❌ 배포 실패! 서버가 동작하지 않습니다."
             echo "📋 최근 로그:"
-            docker logs backend-app --tail 100
+            docker logs pickle-backend-dev --tail 100
             exit 1
 
       - name: 배포 결과 알림
@@ -93,7 +101,7 @@ jobs:
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ 배포가 성공적으로 완료되었습니다!"
             echo "배포 시간: $(date)"
-            echo "커밋: ${{ github.event.workflow_run.head_sha }}"
+            echo "커밋: ${{ github.sha }}"
           else
             echo "❌ 배포에 실패했습니다!"
             echo "GitHub Actions 로그를 확인해주세요."
