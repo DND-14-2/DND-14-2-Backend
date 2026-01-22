@@ -1,0 +1,103 @@
+name: Backend Dev CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Docker 이미지 빌드
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: 코드 체크아웃 (CI가 성공한 커밋)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: JDK 21 설정
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+          cache: gradle
+
+      - name: gradlew 실행 권한 설정
+        run: chmod +x gradlew
+
+      - name: Gradle 빌드 (테스트 제외)
+        run: ./gradlew clean build -x test
+
+      - name: Docker 로그인
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker 이미지 빌드 및 푸시
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/backend-app:dev .
+          docker push ${{ secrets.DOCKER_USERNAME }}/backend-app:dev
+
+  deploy:
+    name: 개발서버 배포
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH로 배포 스크립트 실행
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEV_SERVER_HOST }}
+          username: ${{ secrets.DEV_SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd /home/${{ secrets.DEV_SERVER_USER }}/app
+            
+            echo "🚀 개발 서버 배포 시작..."
+            
+            echo "📦 최신 이미지 Pull..."
+            docker pull ${{ secrets.DOCKER_USERNAME }}/backend-app:dev
+            
+            echo "🌳 .env 파일 생성..."
+            cat > .env <<'EOF'
+            ${{ secrets.DEV_ENV_FILE }}
+            EOF
+            chmod 600 .env
+            
+            echo "▶️ 새 서버 시작..."
+            docker compose --env-file .env up -d --pull always backend
+            
+            echo "🧹 사용하지 않는 이미지 정리..."
+            docker image prune -a -f
+            
+            echo "⛑️ 헬스 체크..."
+            for i in $(seq 1 15); do
+              sleep 3
+              SERVER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
+              if [ "$SERVER_STATUS" -eq 200 ]; then
+                echo "✅ 배포 성공! 서버 동작 중..."
+                exit 0
+              else
+                echo "Attempt $i/15: 헬스 체크 실패 (status=$SERVER_STATUS). 재시도 중..."
+              fi
+            done
+            
+            echo "❌ 배포 실패! 서버가 동작하지 않습니다."
+            echo "📋 최근 로그:"
+            docker logs backend-app --tail 100
+            exit 1
+
+      - name: 배포 결과 알림
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ 배포가 성공적으로 완료되었습니다!"
+            echo "배포 시간: $(date)"
+            echo "커밋: ${{ github.event.workflow_run.head_sha }}"
+          else
+            echo "❌ 배포에 실패했습니다!"
+            echo "GitHub Actions 로그를 확인해주세요."
+          fi
