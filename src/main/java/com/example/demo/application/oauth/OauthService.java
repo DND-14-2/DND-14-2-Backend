@@ -12,12 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 public class OauthService {
 
-    private final IdTokenVerifier oidcIdTokenVerifierService;
+    private final IdTokenVerifier idTokenVerifier;
     private final UserRepository userRepository;
 
     @Transactional
     public User getUserInfo(Provider provider, String idToken) {
-        OauthUserInfo userInfo = oidcIdTokenVerifierService.verifyAndGetUserInfo(provider, idToken);
+        OauthUserInfo userInfo = idTokenVerifier.verifyAndGetUserInfo(provider, idToken);
 
         return userRepository.findByProviderAndProviderId(provider, userInfo.providerId())
                 .orElseGet(() -> userRepository.save(
