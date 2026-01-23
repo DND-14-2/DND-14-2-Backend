@@ -3,11 +3,11 @@ package com.example.demo.infrastructure.oauth.token;
 import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.application.oauth.IdTokenVerifier;
 import com.example.demo.domain.Provider;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Fallback;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("local")
+@Fallback
 public class DummyIdTokenVerifier implements IdTokenVerifier {
 
     @Override
