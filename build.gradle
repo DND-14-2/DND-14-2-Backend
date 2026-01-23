@@ -78,9 +78,8 @@ dependencies {
     testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.19.4'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-    implementation(platform("software.amazon.awssdk:bom:2.27.21"))
-    implementation("software.amazon.awssdk:s3")
-
+    // aws s3
+    implementation("io.awspring.cloud:spring-cloud-aws-starter-s3")
 }
 
 openapi3 {
