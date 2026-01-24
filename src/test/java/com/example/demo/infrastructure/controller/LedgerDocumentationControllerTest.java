@@ -170,9 +170,7 @@ class LedgerDocumentationControllerTest {
                         fieldWithPath("description").type(STRING).description("설명"),
                         fieldWithPath("occurredOn").type(STRING).optional().description("발생 일자(yyyy-MM-dd)"),
                         fieldWithPath("paymentMethod").type(STRING).description("결제 수단"),
-                        fieldWithPath("memo").type(STRING).optional().description("메모(선택)"),
-                        fieldWithPath("createdAt").type(STRING).optional().description("생성 시각"),
-                        fieldWithPath("modifiedAt").type(STRING).optional().description("수정 시각")
+                        fieldWithPath("memo").type(STRING).optional().description("메모(선택)")
                     )
                     .build())
             ));
@@ -257,9 +255,7 @@ class LedgerDocumentationControllerTest {
                         fieldWithPath("description").type(STRING).description("설명"),
                         fieldWithPath("occurredOn").type(STRING).optional().description("발생 일자(yyyy-MM-dd)"),
                         fieldWithPath("paymentMethod").type(STRING).description("결제 수단"),
-                        fieldWithPath("memo").type(STRING).optional().description("메모(선택)"),
-                        fieldWithPath("createdAt").type(STRING).optional().description("생성 시각"),
-                        fieldWithPath("modifiedAt").type(STRING).optional().description("수정 시각")
+                        fieldWithPath("memo").type(STRING).optional().description("메모(선택)")
                     )
                     .build())
             ));

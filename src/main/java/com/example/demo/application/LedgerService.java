@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.example.demo.domain.enums.LedgerType.*;
 
 @RequiredArgsConstructor
 @Service
@@ -90,16 +91,14 @@ public class LedgerService {
         Map<LocalDate, DailySumRow> byDate = rows.stream()
             .collect(Collectors.toMap(DailySumRow::date, r -> r));
 
-        List<DailySummary> daily = new ArrayList<>();
-
-        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-            DailySumRow row = byDate.get(date);
-            long income = (row == null) ? 0L : row.incomeTotal();
-            long expense = (row == null) ? 0L : row.expenseTotal();
-            daily.add(new DailySummary(date, income, expense));
-        }
-
-        return daily;
+        return start.datesUntil(end.plusDays(1))
+            .map(date -> {
+                DailySumRow row = byDate.get(date);
+                long income = (row == null) ? 0L : row.incomeTotal();
+                long expense = (row == null) ? 0L : row.expenseTotal();
+                return new DailySummary(date, income, expense);
+            })
+            .toList();
     }
 
     @Transactional(readOnly = true)
@@ -107,12 +106,12 @@ public class LedgerService {
         List<LedgerResult> results = ledgerEntryRepository.findAllByUser_IdAndOccurredOn(userId, targetDate).stream().map(LedgerResult::from).toList();
 
         long incomeTotal = results.stream()
-            .filter(r -> r.type() == com.example.demo.domain.enums.LedgerType.INCOME)
+            .filter(r -> r.type() == INCOME)
             .mapToLong(LedgerResult::amount)
             .sum();
 
         long expenseTotal = results.stream()
-            .filter(r -> r.type() == com.example.demo.domain.enums.LedgerType.EXPENSE)
+            .filter(r -> r.type() == EXPENSE)
             .mapToLong(LedgerResult::amount)
             .sum();
 

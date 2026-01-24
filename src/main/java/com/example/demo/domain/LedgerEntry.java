@@ -5,6 +5,7 @@ import com.example.demo.domain.enums.LedgerType;
 import com.example.demo.domain.enums.PaymentMethod;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,8 +13,8 @@ import java.time.LocalDate;
 
 @Getter
 @Entity
-@NoArgsConstructor
-public class LedgerEntry extends BaseEntity{
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class LedgerEntry extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
