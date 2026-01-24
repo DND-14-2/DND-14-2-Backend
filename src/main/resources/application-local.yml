@@ -3,7 +3,7 @@ spring:
     activate:
       on-profile: local
   application:
-    name: demo
+    name: pickle
   datasource:
     url: jdbc:mysql://localhost:3306/dnd
     username: dnd
