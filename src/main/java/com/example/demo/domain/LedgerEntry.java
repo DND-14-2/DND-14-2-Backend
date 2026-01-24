@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Getter
 @Entity
 @NoArgsConstructor
-public class LedgerEntry {
+public class LedgerEntry extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,13 +45,14 @@ public class LedgerEntry {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public LedgerEntry(long amount, LedgerType type, LedgerCategory category, String description, LocalDate occurredOn, PaymentMethod paymentMethod, User user) {
+    public LedgerEntry(long amount, LedgerType type, LedgerCategory category, String description, LocalDate occurredOn, PaymentMethod paymentMethod, String memo, User user) {
         this.amount = amount;
         this.type = type;
         this.category = category;
         this.description = description;
         this.occurredOn = occurredOn;
         this.paymentMethod = paymentMethod;
+        this.memo = memo;
         this.user = user;
     }
 
@@ -59,11 +60,12 @@ public class LedgerEntry {
         this.memo = memo;
     }
 
-    public void update(long amount, LedgerType type, LedgerCategory category, String description, PaymentMethod paymentMethod) {
+    public void update(long amount, LedgerType type, LedgerCategory category, String description, PaymentMethod paymentMethod, String memo) {
         this.amount = amount;
         this.type = type;
         this.category = category;
         this.description = description;
         this.paymentMethod = paymentMethod;
+        this.memo = memo;
     }
 }
