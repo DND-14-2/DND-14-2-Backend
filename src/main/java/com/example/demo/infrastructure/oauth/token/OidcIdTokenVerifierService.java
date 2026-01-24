@@ -6,9 +6,11 @@ import com.example.demo.domain.Provider;
 import com.nimbusds.jwt.JWTClaimsSet;
 import java.util.EnumMap;
 import java.util.Map;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile({"dev", "prod"})
 public class OidcIdTokenVerifierService implements IdTokenVerifier {
 
     private final Map<Provider, NimbusOidcIdTokenProcessor> processors = new EnumMap<>(Provider.class);
