@@ -14,8 +14,11 @@ public class User {
     private Long id;
 
     @Embedded
-    @AttributeOverride(name = "value", column = @Column(name = "nickname"))
+    @AttributeOverride(name = "value", column = @Column(name = "nickname", unique = true))
     private Nickname nickname;
+
+    @Column(unique = true)
+    private String invitationCode;
 
     @Column(nullable = false)
     private String email;
@@ -43,5 +46,13 @@ public class User {
         }
 
         this.nickname = new Nickname(nickname);
+    }
+
+    public void registerInvitationCode(String invitationCode) {
+        this.invitationCode = invitationCode;
+    }
+
+    public String getNickname() {
+        return nickname.value();
     }
 }

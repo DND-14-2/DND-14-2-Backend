@@ -11,15 +11,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final InvitationCodeGenerator invitationCodeGenerator;
 
     @Transactional
-    public void registerNickname(Long userId, String nickname) {
+    public String registerNickname(Long userId, String nickname) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
 
         validateIsDuplicateNickname(nickname);
-
         user.registerNickname(nickname);
+
+        String invitationCode = invitationCodeGenerator.generate(user);
+        user.registerInvitationCode(invitationCode);
+
+        return invitationCode;
     }
 
     private void validateIsDuplicateNickname(String nickname) {
