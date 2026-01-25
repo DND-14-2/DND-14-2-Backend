@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.epages.restdocs.apispec.Schema;
 import com.example.demo.application.dto.TokenResponse;
 import com.example.demo.application.oauth.AuthService;
 import com.example.demo.application.oauth.OauthService;
@@ -82,6 +83,8 @@ class OauthDocumentationTest {
                         resource(ResourceSnippetParameters.builder()
                                 .tag("OAuth")
                                 .summary("소셜 로그인")
+                                .requestSchema(Schema.schema("OauthLoginWebRequest"))
+                                .responseSchema(Schema.schema("AuthTokenWebResponse"))
                                 .requestFields(
                                         fieldWithPath("provider").type(STRING).description("소셜 로그인 제공자(예: KAKAO, GOOGLE)"),
                                         fieldWithPath("idToken").type(STRING).description("OIDC ID Token")
