@@ -31,3 +31,7 @@ oauth:
       issuer: "https://kauth.kakao.com"
       audience: kakao-local-client-id
       jwks-uri: "https://kauth.kakao.com/.well-known/jwks.json"
+
+springdoc:
+  swagger-ui:
+    enabled: false

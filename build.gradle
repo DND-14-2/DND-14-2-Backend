@@ -114,17 +114,13 @@ tasks.matching { it.name == 'openapi3' }.configureEach {
 tasks.register('copyToSwagger', Copy) {
     dependsOn 'openapi3'
     from layout.buildDirectory.file('api-spec/openapi3.yaml')
-    into layout.buildDirectory.dir('generated/swagger-ui')
+    into file('src/main/resources/static/swagger-ui')
     rename { 'openapi3.yaml' }
 }
 
 // 3) "빌드(패키징)" 할 때마다 Swagger 스펙을 생성/복사하고, JAR 안에 포함
 tasks.named('bootJar') {
     dependsOn tasks.named('copyToSwagger')
-
-    from(layout.buildDirectory.dir('generated/swagger-ui')) {
-        into 'BOOT-INF/classes/static/swagger-ui'
-    }
 }
 
 // 4) 테스트/앱 실행 시 test profile을 쓰도록 설정
@@ -143,5 +139,4 @@ tasks.named('asciidoctor') {
 tasks.named('bootRun') {
     dependsOn tasks.named('copyToSwagger')
     systemProperty 'spring.profiles.active', runProfile
-    classpath += files(layout.buildDirectory.dir('generated/swagger-ui'))
 }
