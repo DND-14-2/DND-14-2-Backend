@@ -5,7 +5,6 @@ import com.example.demo.infrastructure.controller.dto.InvitationCodeWebResponse;
 import com.example.demo.infrastructure.controller.dto.NicknameWebRequest;
 import com.example.demo.infrastructure.interceptor.UserId;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +18,6 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/users/me/nickname")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<InvitationCodeWebResponse> registerNickname(@Parameter(hidden = true) @UserId Long userId,
                                                                       @RequestBody NicknameWebRequest nickNameWebRequest) {
         String invitationCode = userService.registerNickname(userId, nickNameWebRequest.nickname());
