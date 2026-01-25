@@ -11,26 +11,23 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  cloud:
+    aws:
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: my-test-bucket-name
 
 jwt:
   secret-key: test+test+test+test+test+test+test+test+test+test
 
 oauth:
-  google:
-    client-id: test-client-id
-    client-secret: test-client-secret
-    redirect-uri: http://localhost:8080/oauth/google
-  kakao:
-    client-id: test-client-id
-    client-secret: test-client-secret
-    redirect-uri: http://localhost:8080/oauth/kakao
-
   oidc:
     google:
       issuer: "https://accounts.google.com"
-      audience: ${oauth.google.client-id}
+      audience: google-test-client-id
       jwks-uri: "https://www.googleapis.com/oauth2/v3/certs"
     kakao:
       issuer: "https://kauth.kakao.com"
-      audience: ${oauth.kakao.client-id}
+      audience: kakao-test-client-id
       jwks-uri: "https://kauth.kakao.com/.well-known/jwks.json"
