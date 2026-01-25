@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-public class OauthServiceTest extends AbstractIntegrationTest {
+class OauthServiceTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private IdTokenVerifier OidcIdTokenVerifierService;
