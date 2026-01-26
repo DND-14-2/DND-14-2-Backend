@@ -1,6 +1,5 @@
 package com.example.demo.infrastructure.controller;
 
-import com.example.demo.application.DateRangeResolver;
 import com.example.demo.application.LedgerService;
 import com.example.demo.application.UserService;
 import com.example.demo.application.dto.*;
@@ -16,11 +15,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-
-import static com.example.demo.application.dto.DateRange.CLOCK;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,7 +26,7 @@ import static com.example.demo.application.dto.DateRange.CLOCK;
 public class LedgerController {
     private final LedgerService ledgerService;
     private final UserService userService;
-    private final DateRangeResolver dateRangeResolver;
+    private final Clock clock;
 
     @PostMapping("/ledgers")
     @SecurityRequirement(name = "bearerAuth")
@@ -37,10 +35,10 @@ public class LedgerController {
         @Valid @RequestBody UpsertLedgerWebRequest request
     ) {
         UpsertLedgerCommand command = request.toCommand(userId);
-        LedgerResult result = ledgerService.createLedgerEntry(command);
-        CreateLedgerWebResponse response = new CreateLedgerWebResponse(result.ledgerId());
+        Long ledgerEntryId = ledgerService.createLedgerEntry(command);
+        CreateLedgerWebResponse response = new CreateLedgerWebResponse(ledgerEntryId);
 
-        URI location = URI.create("/ledgers/" + response.ledgerId());
+        URI location = URI.create("/ledgers/" + ledgerEntryId);
         return ResponseEntity.created(location).body(response);
     }
 
@@ -99,7 +97,7 @@ public class LedgerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
-        DateRange range = DateRange.resolve(start, end);
+        DateRange range = DateRange.resolve(clock, start, end);
         UserInfo userInfo = userService.getUserInfo(userId);
         List<DailySummary> result = ledgerService.getSummary(userId, range.start(), range.end());
         return ResponseEntity.ok(LedgerSummaryWebResponse.from(userInfo, range.start(), range.end(), result));
@@ -111,7 +109,7 @@ public class LedgerController {
         @Parameter(hidden = true) @UserId Long userId,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        LocalDate targetDate = Objects.requireNonNullElseGet(date, () -> LocalDate.now(CLOCK));
+        LocalDate targetDate = Objects.requireNonNullElseGet(date, () -> LocalDate.now(clock));
         DailyLedgerDetail result = ledgerService.getLedgerEntriesByDate(userId, targetDate);
         DailyLedgerDetailWebResponse response = new DailyLedgerDetailWebResponse(result);
 

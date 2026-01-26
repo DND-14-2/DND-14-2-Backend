@@ -3,14 +3,11 @@ package com.example.demo.application.dto;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.ZoneId;
 
 public record DateRange(LocalDate start, LocalDate end) {
-    private static final Clock CLOCK = Clock.system(ZoneId.of("Asia/Seoul"));
-
-    public static DateRange resolve(LocalDate start, LocalDate end) {
+    public static DateRange resolve(Clock clock, LocalDate start, LocalDate end) {
         if (start == null && end == null) {
-            return currentMonth();
+            return currentMonth(clock);
         }
         if (start == null) {
             return monthStartTo(end);
@@ -24,8 +21,8 @@ public record DateRange(LocalDate start, LocalDate end) {
     /**
      * today가 속한 월 전체
      */
-    private static DateRange currentMonth() {
-        LocalDate today = LocalDate.now(CLOCK);
+    private static DateRange currentMonth(Clock clock) {
+        LocalDate today = LocalDate.now(clock);
         return monthContaining(today);
     }
 

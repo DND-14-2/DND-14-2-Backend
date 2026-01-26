@@ -24,23 +24,13 @@ public class LedgerService {
     private final UserRepository userRepository;
 
     @Transactional
-    public LedgerResult createLedgerEntry(UpsertLedgerCommand command) {
+    public Long createLedgerEntry(UpsertLedgerCommand command) {
         User user = userRepository.findById(command.userId())
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
-        LedgerEntry entry = new LedgerEntry(
-            command.amount(),
-            command.type(),
-            command.category(),
-            command.description(),
-            command.occurredOn(),
-            command.paymentMethod(),
-            command.memo(),
-            user
-        );
+        LedgerEntry entry = new LedgerEntry(command, user);
 
         LedgerEntry saved = ledgerEntryRepository.save(entry);
-        return LedgerResult.from(saved);
+        return saved.getId();
     }
 
     @Transactional(readOnly = true)
@@ -82,7 +72,6 @@ public class LedgerService {
                     throw new IllegalArgumentException("해당되는 가계부 항목이 존재하지 않습니다.");
                 }
             );
-
     }
 
     @Transactional(readOnly = true)
@@ -121,5 +110,4 @@ public class LedgerService {
             .mapToLong(LedgerResult::amount)
             .sum();
     }
-
 }

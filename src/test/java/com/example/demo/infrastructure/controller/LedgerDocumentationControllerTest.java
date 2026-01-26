@@ -1,16 +1,13 @@
 package com.example.demo.infrastructure.controller;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
-import com.example.demo.application.DateRangeResolver;
 import com.example.demo.application.LedgerService;
 import com.example.demo.application.UserService;
 import com.example.demo.application.dto.DailyLedgerDetail;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
 import com.example.demo.application.oauth.TokenProvider;
-import com.example.demo.domain.LedgerEntry;
-import com.example.demo.domain.Provider;
-import com.example.demo.domain.User;
+import com.example.demo.common.config.ClockTestConfig;
 import com.example.demo.domain.enums.LedgerCategory;
 import com.example.demo.domain.enums.LedgerType;
 import com.example.demo.domain.enums.PaymentMethod;
@@ -19,11 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.restdocs.AutoConfigureRestDocs;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -43,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(LedgerController.class)
 @AutoConfigureRestDocs
+@Import(ClockTestConfig.class)
 class LedgerDocumentationControllerTest {
 
     @Autowired
@@ -55,48 +54,36 @@ class LedgerDocumentationControllerTest {
     private UserService userService;
 
     @MockitoBean
-    private DateRangeResolver dateRangeResolver;
+    private Clock clock;
 
     @MockitoBean
     private TokenProvider tokenProvider;
 
-    private final long userId = 1L;
+
     private final String accessToken = "jwt.access.token";
 
     @BeforeEach
     void setUpAuth() {
+        final long userId = 1L;
         given(tokenProvider.validateToken(accessToken)).willReturn(userId);
     }
 
-    private LedgerResult sampleResult(Long ledgerId, Long userId) {
-        User user = new User(
-            "test@email.com",
-            "https://profile/image.jpg",
-            Provider.KAKAO,
-            "provider-id"
-        );
-
-        LedgerEntry entry = new LedgerEntry(
+    private LedgerResult sampleResult(Long ledgerId) {
+        return new LedgerResult(
+            ledgerId,
             12000L,
             LedgerType.EXPENSE,
             LedgerCategory.FOOD,
             "점심",
             LocalDate.of(2026, 1, 24),
             PaymentMethod.CREDIT_CARD,
-            "메모",
-            user
+            "메모"
         );
-
-        ReflectionTestUtils.setField(entry, "id", ledgerId);
-        ReflectionTestUtils.setField(user, "id", userId);
-
-        return LedgerResult.from(entry);
     }
 
     @Test
     void create_ledger_entry_docs() throws Exception {
-        given(ledgerService.createLedgerEntry(any(UpsertLedgerCommand.class)))
-            .willReturn(sampleResult(1L, 1L));
+        given(ledgerService.createLedgerEntry(any(UpsertLedgerCommand.class))).willReturn(1L);
 
         mockMvc.perform(
                 post("/ledgers")
@@ -143,7 +130,7 @@ class LedgerDocumentationControllerTest {
     @Test
     void get_ledger_entry_by_id_docs() throws Exception {
         given(ledgerService.getLedgerEntry(eq(1L), eq(1L)))
-            .willReturn(sampleResult(1L, 1L));
+            .willReturn(sampleResult(1L));
 
         mockMvc.perform(
                 get("/ledgers/{ledgerId}", 1L)
@@ -207,7 +194,7 @@ class LedgerDocumentationControllerTest {
     @Test
     void update_ledger_entry_docs() throws Exception {
         given(ledgerService.updateLedgerEntry(eq(1L), any(UpsertLedgerCommand.class)))
-            .willReturn(sampleResult(1L, 1L));
+            .willReturn(sampleResult(1L));
 
         mockMvc.perform(
                 put("/ledgers/{ledgerId}", 1L)
@@ -287,9 +274,8 @@ class LedgerDocumentationControllerTest {
     @Test
     void get_daily_ledger_detail_docs() throws Exception {
         LocalDate date = LocalDate.of(2026, 1, 24);
-        given(dateRangeResolver.resolveDate(any())).willReturn(date);
 
-        List<LedgerResult> results = List.of(sampleResult(1L, 1L));
+        List<LedgerResult> results = List.of(sampleResult(1L));
         DailyLedgerDetail detail = new DailyLedgerDetail(date, 0L, 12000L, results);
 
         given(ledgerService.getLedgerEntriesByDate(eq(1L), eq(date))).willReturn(detail);
@@ -330,4 +316,5 @@ class LedgerDocumentationControllerTest {
                     .build())
             ));
     }
+
 }

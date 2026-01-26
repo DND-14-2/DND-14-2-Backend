@@ -1,9 +1,8 @@
-package com.example.demo.application;
+package com.example.demo.application.dto;
 
-import com.example.demo.application.dto.DateRange;
-import com.example.demo.util.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -11,9 +10,8 @@ import java.time.ZoneId;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class DateRangeResolverTest extends AbstractIntegrationTest {
-    private final DateRangeResolver resolver = new DateRangeResolver();
-    private static final ZoneId CLOCK = ZoneId.of("Asia/Seoul");
+class DateRangeTest {
+    private static final Clock CLOCK = Clock.system(ZoneId.of("Asia/Seoul"));
 
     @Test
     void start와_end가_모두_null이면_이번_달_1일에서_말일까지를_반환한다() {
@@ -22,7 +20,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(today);
 
         // when
-        DateRange range = DateRange.resolve(null, null);
+        DateRange range = DateRange.resolve(CLOCK, null, null);
 
         // then
         assertThat(range.start()).isEqualTo(ym.atDay(1));
@@ -36,7 +34,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(end);
 
         // when
-        DateRange range = DateRange.resolve(null, end);
+        DateRange range = DateRange.resolve(CLOCK, null, end);
 
         // then
         assertThat(range.start()).isEqualTo(ym.atDay(1));
@@ -50,7 +48,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(start);
 
         // when
-        DateRange range = DateRange.resolve(start, null);
+        DateRange range = DateRange.resolve(CLOCK, start, null);
 
         // then
         assertThat(range.start()).isEqualTo(start);
@@ -64,7 +62,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         LocalDate end = LocalDate.of(2025, 12, 1);
 
         // when & then
-        assertThatThrownBy(() -> DateRange.resolve(start, end))
+        assertThatThrownBy(() -> DateRange.resolve(CLOCK, start, end))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("start는 end보다 클 수 없습니다.");
     }
@@ -76,31 +74,10 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         LocalDate end = LocalDate.of(2025, 12, 10);
 
         // when
-        DateRange range = DateRange.resolve(start, end);
+        DateRange range = DateRange.resolve(CLOCK, start, end);
 
         // then
         assertThat(range.start()).isEqualTo(start);
         assertThat(range.end()).isEqualTo(end);
-    }
-
-    @Test
-    void resolveDate에_date가_있으면_그대로_반환한다() {
-        // given
-        LocalDate date = LocalDate.of(2026, 1, 24);
-
-        // when
-        LocalDate result = resolver.resolveDate(date);
-
-        // then
-        assertThat(result).isEqualTo(date);
-    }
-
-    @Test
-    void resolveDate에_date가_null이면_오늘_날짜를_반환한다() {
-        // when
-        LocalDate result = resolver.resolveDate(null);
-
-        // then
-        assertThat(result).isEqualTo(LocalDate.now(CLOCK));
     }
 }
