@@ -5,6 +5,7 @@ import com.example.demo.domain.LedgerEntry;
 import com.example.demo.domain.LedgerEntryRepository;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
+import com.example.demo.domain.enums.LedgerType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,19 +104,22 @@ public class LedgerService {
 
     @Transactional(readOnly = true)
     public DailyLedgerDetail getLedgerEntriesByDate(Long userId, LocalDate targetDate) {
-        List<LedgerResult> results = ledgerEntryRepository.findAllByUser_IdAndOccurredOn(userId, targetDate).stream().map(LedgerResult::from).toList();
+        List<LedgerResult> results = ledgerEntryRepository.findAllByUser_IdAndOccurredOn(userId, targetDate)
+            .stream()
+            .map(LedgerResult::from)
+            .toList();
 
-        long incomeTotal = results.stream()
-            .filter(r -> r.type() == INCOME)
-            .mapToLong(LedgerResult::amount)
-            .sum();
-
-        long expenseTotal = results.stream()
-            .filter(r -> r.type() == EXPENSE)
-            .mapToLong(LedgerResult::amount)
-            .sum();
+        long incomeTotal = getTotalByType(results, INCOME);
+        long expenseTotal = getTotalByType(results, EXPENSE);
 
         return new DailyLedgerDetail(targetDate, incomeTotal, expenseTotal, results);
+    }
+
+    private static long getTotalByType(List<LedgerResult> results, LedgerType expense) {
+        return results.stream()
+            .filter(r -> r.type() == expense)
+            .mapToLong(LedgerResult::amount)
+            .sum();
     }
 
 }

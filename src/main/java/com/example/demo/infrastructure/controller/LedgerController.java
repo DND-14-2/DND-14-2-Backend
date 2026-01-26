@@ -18,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
+
+import static com.example.demo.application.dto.DateRange.CLOCK;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -96,7 +99,7 @@ public class LedgerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
-        DateRange range = dateRangeResolver.resolve(start, end);
+        DateRange range = DateRange.resolve(start, end);
         UserInfo userInfo = userService.getUserInfo(userId);
         List<DailySummary> result = ledgerService.getSummary(userId, range.start(), range.end());
         return ResponseEntity.ok(LedgerSummaryWebResponse.from(userInfo, range.start(), range.end(), result));
@@ -108,7 +111,7 @@ public class LedgerController {
         @Parameter(hidden = true) @UserId Long userId,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
-        LocalDate targetDate = dateRangeResolver.resolveDate(date);
+        LocalDate targetDate = Objects.requireNonNullElseGet(date, () -> LocalDate.now(CLOCK));
         DailyLedgerDetail result = ledgerService.getLedgerEntriesByDate(userId, targetDate);
         DailyLedgerDetailWebResponse response = new DailyLedgerDetailWebResponse(result);
 

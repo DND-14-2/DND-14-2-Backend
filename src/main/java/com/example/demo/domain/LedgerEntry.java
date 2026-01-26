@@ -24,21 +24,23 @@ public class LedgerEntry extends BaseEntity {
     private Long amount;            // 9,223,372,036,854,775,807원까지 가능
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LedgerType type;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LedgerCategory category;
 
-    @Size(max = 15)
-    @Column(length = 15)
+    @Column(nullable = false, length = 15)
     private String description;
 
+    @Column(nullable = false)
     private LocalDate occurredOn;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private PaymentMethod paymentMethod;
 
-    @Size(max = 100)
     @Column(length = 100)
     private String memo;
 

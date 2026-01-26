@@ -22,7 +22,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(today);
 
         // when
-        DateRange range = resolver.resolve(null, null);
+        DateRange range = DateRange.resolve(null, null);
 
         // then
         assertThat(range.start()).isEqualTo(ym.atDay(1));
@@ -36,7 +36,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(end);
 
         // when
-        DateRange range = resolver.resolve(null, end);
+        DateRange range = DateRange.resolve(null, end);
 
         // then
         assertThat(range.start()).isEqualTo(ym.atDay(1));
@@ -50,7 +50,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         YearMonth ym = YearMonth.from(start);
 
         // when
-        DateRange range = resolver.resolve(start, null);
+        DateRange range = DateRange.resolve(start, null);
 
         // then
         assertThat(range.start()).isEqualTo(start);
@@ -64,7 +64,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         LocalDate end = LocalDate.of(2025, 12, 1);
 
         // when & then
-        assertThatThrownBy(() -> resolver.resolve(start, end))
+        assertThatThrownBy(() -> DateRange.resolve(start, end))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("start는 end보다 클 수 없습니다.");
     }
@@ -76,7 +76,7 @@ class DateRangeResolverTest extends AbstractIntegrationTest {
         LocalDate end = LocalDate.of(2025, 12, 10);
 
         // when
-        DateRange range = resolver.resolve(start, end);
+        DateRange range = DateRange.resolve(start, end);
 
         // then
         assertThat(range.start()).isEqualTo(start);
