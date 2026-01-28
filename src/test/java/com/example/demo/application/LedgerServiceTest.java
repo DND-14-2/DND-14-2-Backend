@@ -13,6 +13,7 @@ import com.example.demo.domain.enums.LedgerType;
 import com.example.demo.domain.enums.PaymentMethod;
 import com.example.demo.util.AbstractIntegrationTest;
 import com.example.demo.util.DbUtils;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,14 @@ class LedgerServiceTest extends AbstractIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EntityManager entityManager;
+
+    private void flushAndClear() {
+        entityManager.flush();
+        entityManager.clear();
+    }
+
 
     @Test
     void 가계부_항목을_생성할_수_있다() {
@@ -52,6 +61,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
 
         // when
         Long ledgerEntryId = ledgerService.createLedgerEntry(command);
+        flushAndClear();
 
         // then
         assertThat(ledgerEntryId).isNotNull();
@@ -106,6 +116,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
             null
         );
         LedgerEntry entry = ledgerEntryRepository.save(new LedgerEntry(command, user));
+        flushAndClear();
 
         // when
         LedgerResult result = ledgerService.getLedgerEntry(user.getId(), entry.getId());
@@ -136,6 +147,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
             null
         );
         LedgerEntry entry = ledgerEntryRepository.save(new LedgerEntry(command, savedUser1));
+        flushAndClear();
 
         User savedUser2 = DbUtils.givenSavedUser(userRepository);
 
@@ -163,6 +175,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
 
         // when
         ledgerService.updateLedgerMemo(savedUser.getId(), entry.getId(), "아메리카노");
+        flushAndClear();
 
         // then
         LedgerEntry updated = ledgerEntryRepository.findById(entry.getId()).orElseThrow();
@@ -197,6 +210,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
             "new"
         );
         LedgerResult result = ledgerService.updateLedgerEntry(entry.getId(), newCommand);
+        flushAndClear();
 
         // then
         assertThat(result.amount()).isEqualTo(15000L);
@@ -224,6 +238,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
 
         // when
         ledgerService.deleteLedgerEntry(savedUser.getId(), entry.getId());
+        flushAndClear();
 
         // then
         assertThat(ledgerEntryRepository.findById(entry.getId())).isEmpty();
@@ -271,6 +286,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
             null
         );
         ledgerEntryRepository.save(new LedgerEntry(command3, savedUser));
+        flushAndClear();
 
 
         // when
@@ -336,6 +352,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
             null
         );
         ledgerEntryRepository.save(new LedgerEntry(command3, savedUser));
+        flushAndClear();
 
 
         // when

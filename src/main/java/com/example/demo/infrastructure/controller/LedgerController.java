@@ -5,8 +5,6 @@ import com.example.demo.application.UserService;
 import com.example.demo.application.dto.*;
 import com.example.demo.infrastructure.controller.dto.*;
 import com.example.demo.infrastructure.interceptor.UserId;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +27,8 @@ public class LedgerController {
     private final Clock clock;
 
     @PostMapping("/ledgers")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<CreateLedgerWebResponse> create(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @Valid @RequestBody UpsertLedgerWebRequest request
     ) {
         UpsertLedgerCommand command = request.toCommand(userId);
@@ -43,9 +40,8 @@ public class LedgerController {
     }
 
     @GetMapping("/ledgers/{ledgerId}")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<LedgerDetailWebResponse> getById(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @PathVariable Long ledgerId
     ) {
         LedgerResult result = ledgerService.getLedgerEntry(userId, ledgerId);
@@ -55,9 +51,8 @@ public class LedgerController {
     }
 
     @PatchMapping("/ledgers/{ledgerId}/memo")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> updateMemo(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @PathVariable Long ledgerId,
         @Valid @RequestBody UpdateLedgerMemoWebRequest request
     ) {
@@ -66,9 +61,8 @@ public class LedgerController {
     }
 
     @PutMapping("/ledgers/{ledgerId}")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<LedgerDetailWebResponse> update(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @PathVariable Long ledgerId,
         @Valid @RequestBody UpsertLedgerWebRequest request
     ) {
@@ -80,9 +74,8 @@ public class LedgerController {
     }
 
     @DeleteMapping("/ledgers/{ledgerId}")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<Void> delete(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @PathVariable Long ledgerId
     ) {
         ledgerService.deleteLedgerEntry(userId, ledgerId);
@@ -91,9 +84,8 @@ public class LedgerController {
     }
 
     @GetMapping("/ledgers/summary")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<LedgerSummaryWebResponse> getSummary(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
@@ -104,9 +96,8 @@ public class LedgerController {
     }
 
     @GetMapping("/ledgers/daily")
-    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<DailyLedgerDetailWebResponse> getDailyDetail(
-        @Parameter(hidden = true) @UserId Long userId,
+        @UserId Long userId,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date
     ) {
         LocalDate targetDate = Objects.requireNonNullElseGet(date, () -> LocalDate.now(clock));

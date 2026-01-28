@@ -1,11 +1,14 @@
 package com.example.demo.infrastructure.controller;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
+import com.epages.restdocs.apispec.Schema;
 import com.example.demo.application.LedgerService;
 import com.example.demo.application.UserService;
 import com.example.demo.application.dto.DailyLedgerDetail;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
+import com.example.demo.application.dto.DailySummary;
+import com.example.demo.application.dto.UserInfo;
 import com.example.demo.application.oauth.TokenProvider;
 import com.example.demo.common.config.ClockTestConfig;
 import com.example.demo.domain.enums.LedgerCategory;
@@ -42,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(LedgerController.class)
 @AutoConfigureRestDocs
 @Import(ClockTestConfig.class)
-class LedgerDocumentationControllerTest {
+class LedgerDocumentationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -111,6 +114,8 @@ class LedgerDocumentationControllerTest {
                 resource(ResourceSnippetParameters.builder()
                     .tag("Ledger")
                     .summary("가계부 항목 생성")
+                    .requestSchema(Schema.schema("UpsertLedgerWebRequest"))
+                    .responseSchema(Schema.schema("CreateLedgerWebResponse"))
                     .requestFields(
                         fieldWithPath("amount").type(NUMBER).description("금액"),
                         fieldWithPath("type").type(STRING).description("유형(INCOME/EXPENSE)"),
@@ -149,6 +154,7 @@ class LedgerDocumentationControllerTest {
                     .pathParameters(
                         parameterWithName("ledgerId").description("가계부 항목 ID")
                     )
+                    .responseSchema(Schema.schema("LedgerDetailWebResponse"))
                     .responseFields(
                         fieldWithPath("ledgerId").type(NUMBER).description("가계부 항목 ID"),
                         fieldWithPath("amount").type(NUMBER).description("금액"),
@@ -184,6 +190,7 @@ class LedgerDocumentationControllerTest {
                     .pathParameters(
                         parameterWithName("ledgerId").description("가계부 항목 ID")
                     )
+                    .requestSchema(Schema.schema("UpdateLedgerMemoWebRequest"))
                     .requestFields(
                         fieldWithPath("memo").type(STRING).description("메모")
                     )
@@ -225,6 +232,8 @@ class LedgerDocumentationControllerTest {
                     .pathParameters(
                         parameterWithName("ledgerId").description("가계부 항목 ID")
                     )
+                    .requestSchema(Schema.schema("UpsertLedgerWebRequest"))
+                    .responseSchema(Schema.schema("LedgerDetailWebResponse"))
                     .requestFields(
                         fieldWithPath("amount").type(NUMBER).description("금액"),
                         fieldWithPath("type").type(STRING).description("유형(INCOME/EXPENSE)"),
@@ -272,6 +281,41 @@ class LedgerDocumentationControllerTest {
     }
 
     @Test
+    void get_ledger_summary_docs() throws Exception {
+        LocalDate start = LocalDate.of(2026, 1, 1);
+        LocalDate end = LocalDate.of(2026, 1, 31);
+
+        UserInfo userInfo = org.mockito.Mockito.mock(UserInfo.class);
+        given(userService.getUserInfo(eq(1L))).willReturn(userInfo);
+
+        List<DailySummary> summaries = List.of(org.mockito.Mockito.mock(DailySummary.class));
+        given(ledgerService.getSummary(eq(1L), eq(start), eq(end))).willReturn(summaries);
+
+        mockMvc.perform(
+                get("/ledgers/summary")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .param("start", start.toString())
+                    .param("end", end.toString())
+                    .accept(MediaType.APPLICATION_JSON)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+            .andDo(document("ledger-summary",
+                preprocessRequest(prettyPrint()),
+                preprocessResponse(prettyPrint()),
+                resource(ResourceSnippetParameters.builder()
+                    .tag("Ledger")
+                    .summary("가계부 요약 조회")
+                    .queryParameters(
+                        parameterWithName("start").optional().description("조회 시작일(yyyy-MM-dd), 미입력 시 기본값 적용"),
+                        parameterWithName("end").optional().description("조회 종료일(yyyy-MM-dd), 미입력 시 기본값 적용")
+                    )
+                    .responseSchema(Schema.schema("LedgerSummaryWebResponse"))
+                    .build())
+            ));
+    }
+
+    @Test
     void get_daily_ledger_detail_docs() throws Exception {
         LocalDate date = LocalDate.of(2026, 1, 24);
 
@@ -301,6 +345,7 @@ class LedgerDocumentationControllerTest {
                     .queryParameters(
                         parameterWithName("date").optional().description("조회할 날짜(yyyy-MM-dd), 미입력 시 오늘")
                     )
+                    .responseSchema(Schema.schema("DailyLedgerDetailWebResponse"))
                     .responseFields(
                         fieldWithPath("date").type(STRING).description("조회 날짜"),
                         fieldWithPath("incomeTotal").type(NUMBER).description("해당 일자 수입 합계"),
