@@ -13,9 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.example.demo.domain.enums.LedgerType.*;
+import static com.example.demo.domain.enums.LedgerType.EXPENSE;
+import static com.example.demo.domain.enums.LedgerType.INCOME;
 
 @RequiredArgsConstructor
 @Service
@@ -79,16 +81,13 @@ public class LedgerService {
         List<DailySumRow> rows = ledgerEntryRepository.findDailySums(userId, start, end);
 
         Map<LocalDate, DailySumRow> byDate = rows.stream()
-            .collect(Collectors.toMap(DailySumRow::date, r -> r));
+            .collect(Collectors.toMap(DailySumRow::date, row -> row));
 
         return start.datesUntil(end.plusDays(1))
-            .map(date -> {
-                DailySumRow row = byDate.get(date);
-                long income = (row == null) ? 0L : row.incomeTotal();
-                long expense = (row == null) ? 0L : row.expenseTotal();
-                return new DailySummary(date, income, expense);
-            })
-            .toList();
+            .map(date -> Optional.ofNullable(byDate.get(date))
+                .map(row -> DailySummary.of(date, row))
+                .orElseGet(() -> DailySummary.of(date))
+            ).toList();
     }
 
     @Transactional(readOnly = true)
