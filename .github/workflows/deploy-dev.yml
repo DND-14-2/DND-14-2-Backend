@@ -73,7 +73,8 @@ jobs:
             chmod 600 .env
             
             echo "▶️ 새 서버 시작..."
-            docker compose --env-file .env up -d --pull always backend
+            docker compose --env-file .env pull backend
+            docker compose --env-file .env up -d --force-recreate backend
             
             echo "🧹 사용하지 않는 이미지 정리..."
             docker image prune -a -f
