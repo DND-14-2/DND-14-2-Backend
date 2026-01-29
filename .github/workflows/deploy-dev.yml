@@ -24,6 +24,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Gradle 빌드 (테스트 제외)
+        env:
+          OPENAPI_SERVER: ${{ secrets.DEV_SERVER_URL }}
         run: ./gradlew clean build -x test
 
       - name: Docker Buildx 설정
