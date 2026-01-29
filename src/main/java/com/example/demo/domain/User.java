@@ -4,11 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+@Getter
 @Entity
 @NoArgsConstructor
-public class User {
+public class User extends BaseEntity{
 
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,6 +24,8 @@ public class User {
     private Provider provider;
 
     private String providerId;
+
+    private Integer level = 0;
 
     public User(String email, String profile, Provider provider, String providerId) {
         this.email = email;
