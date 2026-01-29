@@ -1,4 +1,4 @@
-package com.example.demo.application;
+package com.example.demo.application.oauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -6,8 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.example.demo.application.dto.OauthUserInfo;
-import com.example.demo.application.oauth.IdTokenVerifier;
-import com.example.demo.application.oauth.OauthService;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
@@ -17,7 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-public class OauthServiceTest extends AbstractIntegrationTest {
+class OauthServiceTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private IdTokenVerifier OidcIdTokenVerifierService;
