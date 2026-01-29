@@ -122,18 +122,31 @@ tasks.register("patchOpenApiSecurity") {
         ] as Set
 
         // 1) securitySchemes.bearerAuth 보장 (Authorize 버튼)
-        if (!(y.contains("securitySchemes:") && y.contains("bearerAuth:"))) {
-            String schemeBlock =
-                    """  securitySchemes:
-    bearerAuth:
+        boolean hasBearerAuth =
+                y.contains("\n    bearerAuth:\n") || y.contains("\n  bearerAuth:\n") || y.contains("\nbearerAuth:\n")
+
+        if (!hasBearerAuth) {
+            String bearerBlock =
+                    """    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
 """
-            if (y.contains("\ncomponents:\n")) {
-                y = y.replaceFirst(/\ncomponents:\n/, "\ncomponents:\n${schemeBlock}")
+
+            boolean hasComponents = y.contains("\ncomponents:\n")
+            boolean hasSecuritySchemesInComponents = y.contains("\n  securitySchemes:\n")
+
+            if (hasComponents) {
+                if (hasSecuritySchemesInComponents) {
+                    // components 아래 securitySchemes가 이미 있으면 거기에 bearerAuth만 삽입
+                    y = y.replaceFirst(/\n  securitySchemes:\n/, "\n  securitySchemes:\n${bearerBlock}")
+                } else {
+                    // components는 있는데 securitySchemes가 없으면 components 아래에 새로 생성
+                    y = y.replaceFirst(/\ncomponents:\n/, "\ncomponents:\n  securitySchemes:\n${bearerBlock}")
+                }
             } else {
-                y += "\ncomponents:\n${schemeBlock}"
+                // components 자체가 없으면 맨 끝에 추가
+                y += "\ncomponents:\n  securitySchemes:\n${bearerBlock}"
             }
         }
 
