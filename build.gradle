@@ -163,7 +163,7 @@ tasks.register("patchOpenApiSecurity") {
             // method 라인: "    post:" (indent 4)
             if (line ==~ /^\s{4}(get|post|put|patch|delete|options|head|trace):\s*$/) {
                 // 공개 path면 security 추가 안 함
-                if (currentPath != null && publicPaths.contains(currentPath)) {
+                if (currentPath != null && publicPaths.any({ currentPath.startsWith(it) })) {
                     continue
                 }
 
