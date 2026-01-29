@@ -55,6 +55,7 @@ public class LedgerEntry extends BaseEntity {
                        PaymentMethod paymentMethod,
                        String memo, User user
     ) {
+        validateTypeMatchesCategory(type, category);
         this.amount = validateAmount(amount);
         this.type = type;
         this.category = category;
@@ -77,6 +78,7 @@ public class LedgerEntry extends BaseEntity {
         PaymentMethod paymentMethod,
         String memo
     ) {
+        validateTypeMatchesCategory(type, category);
         this.amount = validateAmount(amount);
         this.type = type;
         this.category = category;
@@ -90,6 +92,23 @@ public class LedgerEntry extends BaseEntity {
             throw new IllegalArgumentException("금액(amount)은 0보다 커야 합니다.");
         }
         return amount;
+    }
+
+    private static void validateTypeMatchesCategory(LedgerType type, LedgerCategory category) {
+        if (type == null) {
+            throw new IllegalArgumentException("유형(type)은 필수입니다.");
+        }
+        if (category == null) {
+            throw new IllegalArgumentException("카테고리(category)는 필수입니다.");
+        }
+
+        category.fixedType().ifPresent(fixed -> {
+            if (type != fixed) {
+                throw new IllegalArgumentException(
+                    "카테고리(" + category.name() + ")는 " + fixed.name() + " 유형만 허용합니다."
+                );
+            }
+        });
     }
 
     private static String normalizeDescription(String rawDescription) {

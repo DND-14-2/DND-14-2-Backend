@@ -38,6 +38,20 @@ class LedgerEntryTest {
         );
     }
 
+    private LedgerEntry entry(long amount, LedgerType type, LedgerCategory category, String description) {
+        return new LedgerEntry(
+            amount,
+            type,
+            category,
+            description,
+            OCCURRED_ON,
+            PaymentMethod.CASH,
+            null,
+            user()
+        );
+    }
+
+
     @Nested
     @DisplayName("amount 검증")
     class AmountValidation {
@@ -76,6 +90,65 @@ class LedgerEntryTest {
             ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("금액(amount)은 0보다 커야 합니다.");
+        }
+    }
+
+
+    @Nested
+    @DisplayName("type-category 정합성 검증")
+    class TypeCategoryValidation {
+
+        @Test
+        @DisplayName("생성 시 수입 카테고리인데 type이 EXPENSE면 예외")
+        void income_category_requires_income_type_on_create() {
+            assertThatThrownBy(() -> entry(
+                1000L,
+                LedgerType.EXPENSE,
+                LedgerCategory.SALARY,
+                "월급"
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("카테고리(SALARY)는 INCOME 유형만 허용합니다.");
+        }
+
+        @Test
+        @DisplayName("생성 시 지출 카테고리인데 type이 INCOME이면 예외")
+        void expense_category_requires_expense_type_on_create() {
+            assertThatThrownBy(() -> entry(
+                1000L,
+                LedgerType.INCOME,
+                LedgerCategory.FOOD,
+                "점심"
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("카테고리(FOOD)는 EXPENSE 유형만 허용합니다.");
+        }
+
+        @Test
+        @DisplayName("수정 시에도 카테고리에 맞지 않는 type이면 예외")
+        void type_must_match_category_on_update() {
+            LedgerEntry entry = entry(1000L, LedgerType.EXPENSE, LedgerCategory.FOOD, "점심");
+
+            assertThatThrownBy(() -> entry.update(
+                1000L,
+                LedgerType.INCOME,
+                LedgerCategory.FOOD,
+                "점심",
+                PaymentMethod.CASH,
+                null
+            ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("카테고리(FOOD)는 EXPENSE 유형만 허용합니다.");
+        }
+
+        @Test
+        @DisplayName("고정 타입이 없는 카테고리는 type을 강제하지 않는다")
+        void category_without_fixed_type_does_not_enforce() {
+            LedgerEntry incomeOther = entry(1000L, LedgerType.INCOME, LedgerCategory.OTHER, "기타수입");
+            assertThat(incomeOther.getType()).isEqualTo(LedgerType.INCOME);
+
+            LedgerEntry expenseOther = entry(1000L, LedgerType.EXPENSE, LedgerCategory.OTHER, "기타지출");
+            assertThat(expenseOther.getType()).isEqualTo(LedgerType.EXPENSE);
         }
     }
 

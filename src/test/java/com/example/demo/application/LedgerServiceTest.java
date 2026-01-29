@@ -1,7 +1,5 @@
 package com.example.demo.application;
 
-import com.example.demo.application.dto.DailyLedgerDetail;
-import com.example.demo.application.dto.DailySummary;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
 import com.example.demo.domain.LedgerEntry;
@@ -256,7 +254,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
         LedgerEntry entry1 = new LedgerEntry(
             1000L,
             LedgerType.INCOME,
-            LedgerCategory.SAVINGS_FINANCE,
+            LedgerCategory.ALLOWANCE,
             "용돈",
             start,
             PaymentMethod.BANK_TRANSFER,
@@ -306,7 +304,7 @@ class LedgerServiceTest extends AbstractIntegrationTest {
         LedgerResult r1 = result.get(0);
         assertThat(r1.amount()).isEqualTo(1000L);
         assertThat(r1.type()).isEqualTo(LedgerType.INCOME);
-        assertThat(r1.category()).isEqualTo(LedgerCategory.SAVINGS_FINANCE);
+        assertThat(r1.category()).isEqualTo(LedgerCategory.ALLOWANCE);
         assertThat(r1.description()).isEqualTo("용돈");
         assertThat(r1.paymentMethod()).isEqualTo(PaymentMethod.BANK_TRANSFER);
         assertThat(r1.memo()).isNull();
