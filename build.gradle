@@ -79,7 +79,7 @@ ext {
     // Swagger UI의 "Try it out" 기본 서버 주소
     openApiServer = (project.findProperty('openApiServer')
             ?: System.getenv('OPENAPI_SERVER')
-            ?: 'http://localhost:8080') as String
+            ?: '/') as String
 }
 
 openapi3 {
