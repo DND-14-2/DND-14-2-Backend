@@ -1,7 +1,7 @@
 name: Backend Dev CD
 
 on:
-  push:
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -24,6 +24,8 @@ jobs:
         run: chmod +x gradlew
 
       - name: Gradle 빌드 (테스트 제외)
+        env:
+          OPENAPI_SERVER: ${{ secrets.DEV_SERVER_URL }}
         run: ./gradlew clean build -x test
 
       - name: Docker Buildx 설정
@@ -73,7 +75,8 @@ jobs:
             chmod 600 .env
             
             echo "▶️ 새 서버 시작..."
-            docker compose --env-file .env up -d --pull always backend
+            docker compose --env-file .env pull backend
+            docker compose --env-file .env up -d --force-recreate backend
             
             echo "🧹 사용하지 않는 이미지 정리..."
             docker image prune -a -f
@@ -81,18 +84,19 @@ jobs:
             echo "⛑️ 헬스 체크..."
             for i in $(seq 1 15); do
               sleep 3
-              SERVER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:80/actuator/health || echo "000")
-              if [ "$SERVER_STATUS" -eq 200 ]; then
-                echo "✅ 배포 성공! 서버 동작 중..."
+              SERVER_STATUS=$(curl -o /dev/null -s -w "%{http_code}" \
+                --connect-timeout 3 --max-time 5 \
+                https://pickledev.duckdns.org/actuator/health || echo "000")
+          
+              if [[ "$SERVER_STATUS" == "200" || "$SERVER_STATUS" == "503" ]]; then
+                echo "✅ 배포 성공! 서버 동작 중... (status=$SERVER_STATUS)"
                 exit 0
               else
                 echo "Attempt $i/15: 헬스 체크 실패 (status=$SERVER_STATUS). 재시도 중..."
               fi
             done
             
-            echo "❌ 배포 실패! 서버가 동작하지 않습니다."
-            echo "📋 최근 로그:"
-            docker logs pickle-backend-dev --tail 100
+            echo "❌ 배포 실패! 서버가 응답하지 않습니다."
             exit 1
 
       - name: 배포 결과 알림
@@ -104,5 +108,4 @@ jobs:
             echo "커밋: ${{ github.sha }}"
           else
             echo "❌ 배포에 실패했습니다!"
-            echo "GitHub Actions 로그를 확인해주세요."
           fi

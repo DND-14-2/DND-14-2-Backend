@@ -47,6 +47,9 @@ oauth:
       audience: ${oauth.kakao.client-id}
       jwks-uri: "https://kauth.kakao.com/.well-known/jwks.json"
 
+server:
+  forward-headers-strategy: framework
+
 management:
   endpoints:
     web:
@@ -55,3 +58,9 @@ management:
   endpoint:
     health:
       show-details: never
+
+springdoc:
+  swagger-ui:
+    url: /api-docs/openapi3.yaml
+    disable-swagger-default-url: true
+
