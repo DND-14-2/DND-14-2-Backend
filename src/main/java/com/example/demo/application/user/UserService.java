@@ -1,20 +1,28 @@
 package com.example.demo.application.user;
 
+import com.example.demo.application.dto.OauthUserInfo;
 import com.example.demo.application.dto.UserInfo;
-import com.example.demo.domain.Friend;
-import com.example.demo.domain.FriendRepository;
+import com.example.demo.domain.Nickname;
+import com.example.demo.domain.NicknameGenerator;
+import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
+    private static final int MAX_RETRY = 10;
+
     private final UserRepository userRepository;
-    private final FriendRepository friendRepository;
+    private final NicknameGenerator nicknameGenerator;
     private final InvitationCodeGenerator invitationCodeGenerator;
 
     @Transactional(readOnly = true)
@@ -25,38 +33,46 @@ public class UserService {
     }
 
     @Transactional
-    public String registerNickname(Long userId, String nickname) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-
-        validateIsDuplicateNickname(nickname);
-        user.registerNickname(nickname);
-
-        String invitationCode = invitationCodeGenerator.generate(user);
-        user.registerInvitationCode(invitationCode);
-
-        return invitationCode;
+    public UserInfo login(Provider provider, OauthUserInfo oauthUserInfo) {
+        User user = userRepository.findByProviderAndProviderId(provider, oauthUserInfo.providerId())
+            .orElseGet(() -> createUserWithRetries(provider, oauthUserInfo));
+        return new UserInfo(user.getId(), user.getNickname(), user.getLevel(), user.getProfile());
     }
 
-    private void validateIsDuplicateNickname(String nickname) {
-        if (userRepository.existsByNickname(nickname)) {
-            throw new IllegalArgumentException("이미 존재하는 닉네임입니다.");
+    private User createUserWithRetries(Provider provider, OauthUserInfo info) {
+        for (int retry = 1; retry <= MAX_RETRY; retry++) {
+            User user = new User(
+                info.email(),
+                info.picture(),
+                provider,
+                info.providerId()
+            );
+
+            Nickname nickname = nicknameGenerator.generate();
+            String inviteCode = invitationCodeGenerator.generate(nickname.value());
+
+            user.registerNickname(nickname);
+            user.registerInvitationCode(inviteCode);
+
+            try {
+                // flush를 통해 유니크 제약 조건 검사
+                return userRepository.saveAndFlush(user);
+            } catch (DataIntegrityViolationException e) {
+                // 동시 로그인 경쟁으로 provider/providerId 유저가 이미 생성됐을 수 있음
+                Optional<User> existing = userRepository.findByProviderAndProviderId(provider, info.providerId());
+                if (existing.isPresent()) {
+                    return existing.get();
+                }
+                // 아직 없으면 닉네임/초대코드 유니크 충돌 가능성이 높으니 retry
+                log.warn("유저 닉네임/초대코드 중복으로 인한 재시도 횟수: {}/{}, userProvider: {}, userProviderId: {}",
+                    retry, MAX_RETRY, provider.name(), info.providerId(), e);
+            }
         }
-    }
-
-    @Transactional
-    public void addFriend(Long userId, String invitationCode) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저입니다."));
-
-        User followingUser = userRepository.findByInvitationCode(invitationCode)
-            .orElseThrow(() -> new IllegalArgumentException("팔로우하려는 대상이 존재하지 않습니다."));
-
-        if (friendRepository.existsFriend(user.getId(), followingUser.getId())) {
-            return;
-        }
-
-        Friend friend = new Friend(user, followingUser);
-        friendRepository.save(friend);
+        throw new IllegalStateException(
+            String.format(
+                "닉네임/초대코드 중복으로 인해 유저 생성에 실패했습니다. userProvider: %s, userProviderId: %s",
+                provider.name(), info.providerId()
+            )
+        );
     }
 }

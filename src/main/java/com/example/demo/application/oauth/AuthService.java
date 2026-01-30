@@ -16,11 +16,11 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
-    public TokenResponse issueTokens(User user) {
-        TokenResponse token = tokenProvider.generateToken(user.getId());
+    public TokenResponse issueTokens(Long userId) {
+        TokenResponse token = tokenProvider.generateToken(userId);
 
-        RefreshToken refreshToken = refreshTokenRepository.findByUserId((user.getId()))
-            .orElseGet(() -> new RefreshToken(user.getId(), token.refreshToken()));
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId((userId))
+            .orElseGet(() -> new RefreshToken(userId, token.refreshToken()));
 
         refreshToken.rotate(token.refreshToken());
         refreshTokenRepository.save(refreshToken);

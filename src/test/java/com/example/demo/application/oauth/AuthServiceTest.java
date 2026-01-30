@@ -31,7 +31,7 @@ class AuthServiceTest extends AbstractIntegrationTest {
         User savedUser = userRepository.save(user);
 
         // when
-        TokenResponse tokenResponse = sut.issueTokens(savedUser);
+        TokenResponse tokenResponse = sut.issueTokens(savedUser.getId());
 
         // then
         Optional<RefreshToken> refreshToken = refreshTokenRepository.findByUserId(savedUser.getId());

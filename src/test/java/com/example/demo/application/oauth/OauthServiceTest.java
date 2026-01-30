@@ -6,6 +6,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.example.demo.application.dto.OauthUserInfo;
+import com.example.demo.application.dto.UserInfo;
+import com.example.demo.domain.Nickname;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
@@ -40,15 +42,15 @@ class OauthServiceTest extends AbstractIntegrationTest {
         given(OidcIdTokenVerifierService.verifyAndGetUserInfo(provider, idToken)).willReturn(oauthUserInfo);
 
         // when
-        User result = sut.getUserInfo(provider, idToken);
+        UserInfo result = sut.getUserInfo(provider, idToken);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isNotNull();
+        assertThat(result.userId()).isNotNull();
 
         assertThat(userRepository.findByProviderAndProviderId(provider, providerId))
                 .isPresent()
-                .hasValueSatisfying(user -> assertThat(user.getId()).isEqualTo(result.getId()));
+                .hasValueSatisfying(user -> assertThat(user.getId()).isEqualTo(result.userId()));
 
         verify(OidcIdTokenVerifierService).verifyAndGetUserInfo(provider, idToken);
     }
@@ -63,17 +65,19 @@ class OauthServiceTest extends AbstractIntegrationTest {
         String picture = "https://example.com/existing.jpg";
 
         // 기존 사용자 DB에 저장
-        User existingUser = userRepository.save(new User(email, picture, provider, providerId));
+        User user = new User(email, picture, provider, providerId);
+        user.registerNickname(new Nickname("test"));
+        User existingUser = userRepository.save(user);
         OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
         given(OidcIdTokenVerifierService.verifyAndGetUserInfo(provider, idToken)).willReturn(oauthUserInfo);
 
         // when
-        User result = sut.getUserInfo(provider, idToken);
+        UserInfo result = sut.getUserInfo(provider, idToken);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(existingUser.getId());
+        assertThat(result.userId()).isEqualTo(existingUser.getId());
 
         verify(OidcIdTokenVerifierService).verifyAndGetUserInfo(provider, idToken);
     }

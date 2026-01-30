@@ -3,7 +3,8 @@ package com.example.demo.application.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.example.demo.domain.FriendRepository;
+import com.example.demo.application.dto.OauthUserInfo;
+import com.example.demo.application.dto.UserInfo;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
@@ -21,39 +22,120 @@ class UserServiceTest {
     @Autowired
     UserRepository userRepository;
 
-    @Autowired
-    FriendRepository friendRepository;
-
     @Test
-    void 닉네임이_중복되면_안된다() {
+    void 신규_유저_로그인_시_닉네임과_초대코드가_생성되어_저장된다() {
         // given
-        User user1 = new User("email1", "profile1", Provider.GOOGLE, "provider-id-1");
-        User user2 = new User("email2", "profile2", Provider.GOOGLE, "provider-id-2");
-        Long user1Id = userRepository.save(user1).getId();
-        Long user2Id = userRepository.save(user2).getId();
-        String nickname = "test";
-        sut.registerNickname(user1Id, nickname);
+        OauthUserInfo oauthUserInfo = new OauthUserInfo(
+            "google123",
+            "newuser@example.com",
+            "profile.jpg"
+        );
 
-        // when & then
-        assertThatThrownBy(() -> sut.registerNickname(user2Id, nickname))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("이미 존재하는 닉네임입니다.");
+        // when
+        UserInfo result = sut.login(Provider.GOOGLE, oauthUserInfo);
+
+        // then
+        assertThat(result.nickname()).isNotNull();
+        assertThat(result.nickname()).isNotEmpty();
+
+        User savedUser = userRepository.findByProviderAndProviderId(Provider.GOOGLE, "google123")
+            .orElseThrow();
+
+        assertThat(savedUser.getEmail()).isEqualTo("newuser@example.com");
+        assertThat(savedUser.getNickname()).isNotNull();
+        assertThat(savedUser.getInvitationCode()).isNotNull();
     }
 
     @Test
-    void 초대코드를_통해_친구를_맺을_수_있다() {
+    void 기존_유저가_다시_로그인하면_기존_정보를_반환한다() {
         // given
-        User user1 = new User("email1", "profile1", Provider.GOOGLE, "provider-id-1");
-        User user2 = new User("email2", "profile2", Provider.GOOGLE, "provider-id-2");
-        Long user1Id = userRepository.save(user1).getId();
-        Long user2Id = userRepository.save(user2).getId();
-        sut.registerNickname(user1Id, "test1");
-        String user2InvitationCode = sut.registerNickname(user2Id, "test2");
+        OauthUserInfo oauthUserInfo = new OauthUserInfo(
+            "google123",
+            "newuser@example.com",
+            "profile.jpg"
+        );
+
+        UserInfo firstLogin = sut.login(Provider.KAKAO, oauthUserInfo);
+        String originalNickname = firstLogin.nickname();
 
         // when
-        sut.addFriend(user1Id, user2InvitationCode);
+        UserInfo secondLogin = sut.login(Provider.KAKAO, oauthUserInfo);
 
         // then
-        assertThat(friendRepository.existsFriend(user1Id, user2Id)).isTrue();
+        assertThat(secondLogin.nickname()).isEqualTo(originalNickname);
+        assertThat(secondLogin.userId()).isEqualTo(firstLogin.userId());
+    }
+
+    @Test
+    void 여러_유저가_생성되어도_닉네임과_초대코드는_모두_유니크하다() {
+        // given
+        OauthUserInfo user1 = new OauthUserInfo("id1", "user1@example.com", "pic1.jpg");
+        OauthUserInfo user2 = new OauthUserInfo("id2", "user2@example.com", "pic2.jpg");
+        OauthUserInfo user3 = new OauthUserInfo("id3", "user3@example.com", "pic3.jpg");
+
+        // when
+        UserInfo result1 = sut.login(Provider.GOOGLE, user1);
+        UserInfo result2 = sut.login(Provider.GOOGLE, user2);
+        UserInfo result3 = sut.login(Provider.GOOGLE, user3);
+
+        // then
+        assertThat(result1.nickname()).isNotEqualTo(result2.nickname());
+        assertThat(result2.nickname()).isNotEqualTo(result3.nickname());
+        assertThat(result1.nickname()).isNotEqualTo(result3.nickname());
+
+        User savedUser1 = userRepository.findByProviderAndProviderId(Provider.GOOGLE, "id1").orElseThrow();
+        User savedUser2 = userRepository.findByProviderAndProviderId(Provider.GOOGLE, "id2").orElseThrow();
+        User savedUser3 = userRepository.findByProviderAndProviderId(Provider.GOOGLE, "id3").orElseThrow();
+
+        assertThat(savedUser1.getInvitationCode()).isNotEqualTo(savedUser2.getInvitationCode());
+        assertThat(savedUser2.getInvitationCode()).isNotEqualTo(savedUser3.getInvitationCode());
+        assertThat(savedUser1.getInvitationCode()).isNotEqualTo(savedUser3.getInvitationCode());
+    }
+
+    @Test
+    void 같은_이메일이라도_Provider가_다르면_다른_유저로_생성된다() {
+        // given
+        String sameEmail = "same@example.com";
+        OauthUserInfo googleUser = new OauthUserInfo("google999", sameEmail, "pic.jpg");
+        OauthUserInfo kakaoUser = new OauthUserInfo("kakao999", sameEmail, "pic.jpg");
+
+        // when
+        UserInfo googleResult = sut.login(Provider.GOOGLE, googleUser);
+        UserInfo kakaoResult = sut.login(Provider.KAKAO, kakaoUser);
+
+        // then
+        assertThat(googleResult.userId()).isNotEqualTo(kakaoResult.userId());
+        assertThat(googleResult.nickname()).isNotEqualTo(kakaoResult.nickname());
+    }
+
+    @Test
+    void 존재하는_userId로_조회하면_유저_정보를_반환한다() {
+        // given
+        OauthUserInfo oauthUserInfo = new OauthUserInfo(
+            "getinfo@example.com",
+            "profile.jpg",
+            "getinfo123"
+        );
+        UserInfo created = sut.login(Provider.GOOGLE, oauthUserInfo);
+
+        // when
+        UserInfo result = sut.getUserInfo(created.userId());
+
+        // then
+        assertThat(result.userId()).isEqualTo(created.userId());
+        assertThat(result.nickname()).isEqualTo(created.nickname());
+        assertThat(result.level()).isEqualTo(created.level());
+        assertThat(result.profile()).isEqualTo(created.profile());
+    }
+
+    @Test
+    void 존재하지_않는_유저_ID로_조회하면_예외를_발생시킨다() {
+        // given
+        Long nonExistentId = 99999L;
+
+        // when & then
+        assertThatThrownBy(() -> sut.getUserInfo(nonExistentId))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("존재하지 않는 사용자입니다.");
     }
 }
