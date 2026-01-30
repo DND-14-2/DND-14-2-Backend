@@ -33,7 +33,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willDoNothing;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.*;
 import static org.springframework.restdocs.operation.preprocess.Preprocessors.*;
-import static org.springframework.restdocs.payload.JsonFieldType.*;
+import static org.springframework.restdocs.payload.JsonFieldType.NUMBER;
+import static org.springframework.restdocs.payload.JsonFieldType.STRING;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 import static org.springframework.restdocs.request.RequestDocumentation.parameterWithName;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -293,8 +294,15 @@ class LedgerDocumentationTest {
         UserInfo userInfo = Mockito.mock(UserInfo.class);
         given(userService.getUserInfo(eq(1L))).willReturn(userInfo);
 
-        List<LedgerResult> summaries = List.of(Mockito.mock(LedgerResult.class));
-        given(ledgerService.getSummary(eq(1L), eq(start), eq(end))).willReturn(summaries);
+        LedgerEntriesByDateRangeResponse response = new LedgerEntriesByDateRangeResponse(
+            new DateRange(start, end),
+            List.of(
+                sampleResult(1L),
+                sampleResult(2L),
+                sampleResult(3L)
+            )
+        );
+        given(ledgerService.getSummary(eq(1L), eq(start), eq(end))).willReturn(response);
 
         mockMvc.perform(
                 get("/ledgers/summary")

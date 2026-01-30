@@ -1,5 +1,6 @@
 package com.example.demo.application;
 
+import com.example.demo.application.dto.LedgerEntriesByDateRangeResponse;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
 import com.example.demo.domain.LedgerEntry;
@@ -291,7 +292,8 @@ class LedgerServiceTest extends AbstractIntegrationTest {
 
 
         // when
-        List<LedgerResult> result = ledgerService.getSummary(savedUser.getId(), start, end);
+        LedgerEntriesByDateRangeResponse response = ledgerService.getSummary(savedUser.getId(), start, end);
+        List<LedgerResult> result = response.results();
 
         // then
         assertThat(result).hasSize(3);

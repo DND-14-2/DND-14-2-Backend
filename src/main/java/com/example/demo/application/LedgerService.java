@@ -1,5 +1,7 @@
 package com.example.demo.application;
 
+import com.example.demo.application.dto.DateRange;
+import com.example.demo.application.dto.LedgerEntriesByDateRangeResponse;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
 import com.example.demo.domain.LedgerEntry;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,6 +22,7 @@ import java.util.List;
 public class LedgerService {
     private final LedgerEntryRepository ledgerEntryRepository;
     private final UserRepository userRepository;
+    private final Clock clock;
 
     @Transactional
     public LedgerResult createLedgerEntry(UpsertLedgerCommand command) {
@@ -81,13 +85,20 @@ public class LedgerService {
     }
 
     @Transactional(readOnly = true)
-    public List<LedgerResult> getSummary(Long userId, LocalDate start, LocalDate end) {
+    public LedgerEntriesByDateRangeResponse getSummary(Long userId, LocalDate start, LocalDate end) {
+        DateRange range = DateRange.resolve(clock, start, end);
+
         List<LedgerEntry> entries = ledgerEntryRepository.findAllByUser_IdAndOccurredOnBetween(
-            userId, start, end, Sort.by(Sort.Order.asc("occurredOn"), Sort.Order.asc("id"))
+            userId,
+            range.start(),
+            range.end(),
+            Sort.by(Sort.Order.asc("occurredOn"), Sort.Order.asc("id"))
         );
 
-        return entries.stream()
+        List<LedgerResult> results = entries.stream()
             .map(LedgerResult::from)
             .toList();
+
+        return new LedgerEntriesByDateRangeResponse(range, results);
     }
 }

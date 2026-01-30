@@ -1,6 +1,6 @@
 package com.example.demo.infrastructure.controller.dto;
 
-import com.example.demo.application.dto.LedgerResult;
+import com.example.demo.application.dto.LedgerEntriesByDateRangeResponse;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,14 +11,16 @@ public record LedgerSummaryWebResponse(
     List<LedgerDetailWebResponse> result
 ) {
     public static LedgerSummaryWebResponse from(
-        LocalDate start,
-        LocalDate end,
-        List<LedgerResult> rawResult
+        LedgerEntriesByDateRangeResponse response
     ) {
-        List<LedgerDetailWebResponse> result = rawResult.stream()
+        List<LedgerDetailWebResponse> result = response.results().stream()
             .map(LedgerDetailWebResponse::from)
             .toList();
 
-        return new LedgerSummaryWebResponse(start, end, result);
+        return new LedgerSummaryWebResponse(
+            response.dateRange().start(),
+            response.dateRange().end(),
+            result
+        );
     }
 }

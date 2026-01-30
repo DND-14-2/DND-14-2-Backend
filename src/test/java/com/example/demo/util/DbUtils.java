@@ -5,13 +5,16 @@ import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
 
 public class DbUtils {
-    public static User givenSavedUser(UserRepository userRepository) {
-        User user = new User(
+    public static User kakaoUser() {
+        return new User(
             "test@example.com",
             "https://profile.com/image.png",
             Provider.KAKAO,
             "kakao-test-1"
         );
-        return userRepository.save(user);
+    }
+
+    public static User givenSavedUser(UserRepository repo) {
+        return repo.save(kakaoUser());
     }
 }

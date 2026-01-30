@@ -1,7 +1,7 @@
 package com.example.demo.infrastructure.controller;
 
 import com.example.demo.application.LedgerService;
-import com.example.demo.application.dto.DateRange;
+import com.example.demo.application.dto.LedgerEntriesByDateRangeResponse;
 import com.example.demo.application.dto.LedgerResult;
 import com.example.demo.application.dto.UpsertLedgerCommand;
 import com.example.demo.infrastructure.controller.dto.LedgerDetailWebResponse;
@@ -17,16 +17,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.time.Clock;
 import java.time.LocalDate;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
 @RestController
 public class LedgerController {
     private final LedgerService ledgerService;
-    private final Clock clock;
 
     @PostMapping("/ledgers")
     public ResponseEntity<LedgerDetailWebResponse> create(
@@ -91,8 +88,7 @@ public class LedgerController {
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
     ) {
-        DateRange range = DateRange.resolve(clock, start, end);
-        List<LedgerResult> result = ledgerService.getSummary(userId, range.start(), range.end());
-        return ResponseEntity.ok(LedgerSummaryWebResponse.from(range.start(), range.end(), result));
+        LedgerEntriesByDateRangeResponse response = ledgerService.getSummary(userId, start, end);
+        return ResponseEntity.ok(LedgerSummaryWebResponse.from(response));
     }
 }
