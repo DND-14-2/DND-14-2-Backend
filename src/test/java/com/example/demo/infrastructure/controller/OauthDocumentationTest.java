@@ -1,7 +1,6 @@
 package com.example.demo.infrastructure.controller;
 
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
-import static com.epages.restdocs.apispec.ResourceDocumentation.headerWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -58,6 +57,8 @@ class OauthDocumentationTest {
         String idToken = "test-id-token";
         User user = new User(
                 "test@email.com",
+                new Nickname("test"),
+                "TEST",
                 "https://profile/image.jpg",
                 Provider.KAKAO,
                 "provider-id"

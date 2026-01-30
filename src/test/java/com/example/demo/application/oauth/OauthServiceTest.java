@@ -65,8 +65,7 @@ class OauthServiceTest extends AbstractIntegrationTest {
         String picture = "https://example.com/existing.jpg";
 
         // 기존 사용자 DB에 저장
-        User user = new User(email, picture, provider, providerId);
-        user.registerNickname(new Nickname("test"));
+        User user = new User(email, new Nickname("test"), "TEST", picture, provider, providerId);
         User existingUser = userRepository.save(user);
         OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
