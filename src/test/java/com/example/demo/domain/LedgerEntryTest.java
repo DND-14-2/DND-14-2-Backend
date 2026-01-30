@@ -200,7 +200,7 @@ class LedgerEntryTest {
                 PaymentMethod.CASH,
                 null
             );
-            assertThat(entry.getDescription()).isEqualTo("저녁", kakaoUser());
+            assertThat(entry.getDescription()).isEqualTo("저녁");
         }
 
         @Test
