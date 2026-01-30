@@ -54,6 +54,10 @@ public class User extends BaseEntity{
         this.invitationCode = invitationCode;
     }
 
+    public void changeNickname(String nickname) {
+        this.nickname = new Nickname(nickname);
+    }
+
     public String getNickname() {
         return nickname.value();
     }

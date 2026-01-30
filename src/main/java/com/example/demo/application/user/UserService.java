@@ -27,8 +27,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserInfo getUserInfo(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        User user = findUserById(userId);
         return new UserInfo(user.getId(), user.getNickname(), user.getLevel(), user.getProfile());
     }
 
@@ -74,5 +73,17 @@ public class UserService {
                 provider.name(), info.providerId()
             )
         );
+    }
+
+    @Transactional
+    public void changeNickname(Long userId, String nickname) {
+        User user = findUserById(userId);
+
+        user.changeNickname(nickname);
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 }

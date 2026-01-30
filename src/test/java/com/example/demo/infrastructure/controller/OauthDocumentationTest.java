@@ -18,9 +18,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.epages.restdocs.apispec.Schema;
 import com.example.demo.application.dto.TokenResponse;
+import com.example.demo.application.dto.UserInfo;
 import com.example.demo.application.oauth.AuthService;
 import com.example.demo.application.oauth.OauthService;
 import com.example.demo.application.oauth.TokenProvider;
+import com.example.demo.domain.Nickname;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
 import org.junit.jupiter.api.Tag;
@@ -63,8 +65,8 @@ class OauthDocumentationTest {
         String accessToken = "jwt.access.token";
         String refreshToken = "jwt.refresh.token";
 
-        given(oauthService.getUserInfo(Provider.KAKAO, idToken)).willReturn(user);
-        given(authService.issueTokens(user)).willReturn(new TokenResponse(accessToken, refreshToken));
+        given(oauthService.getUserInfo(Provider.KAKAO, idToken)).willReturn(new UserInfo(user.getId(), user.getNickname(), user.getLevel(), user.getProfile()));
+        given(authService.issueTokens(user.getId())).willReturn(new TokenResponse(accessToken, refreshToken));
 
         // when & then
         mockMvc.perform(

@@ -18,20 +18,10 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/users/me/nickname")
-    public ResponseEntity<InvitationCodeWebResponse> registerNickname(@UserId Long userId,
-                                                                      @RequestBody NicknameWebRequest nickNameWebRequest
+    public ResponseEntity<InvitationCodeWebResponse> changeNickname(@UserId Long userId,
+                                                                    @RequestBody NicknameWebRequest nickNameWebRequest
     ) {
-        String invitationCode = userService.registerNickname(userId, nickNameWebRequest.nickname());
-
-        return ResponseEntity.ok(new InvitationCodeWebResponse(invitationCode));
-    }
-
-    @PostMapping("/users/me/friends")
-    public ResponseEntity<Void> connectFriend(@UserId Long userId,
-                                               @RequestBody InvitationCodeWebRequest invitationCodeWebRequest
-    ) {
-        userService.addFriend(userId, invitationCodeWebRequest.invitationCode());
-
+        userService.changeNickname(userId, nickNameWebRequest.nickname());
         return ResponseEntity.noContent().build();
     }
 }
