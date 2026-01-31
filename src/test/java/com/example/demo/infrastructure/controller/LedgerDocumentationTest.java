@@ -181,7 +181,7 @@ class LedgerDocumentationTest {
                         fieldWithPath("type").type(STRING).description("유형. " + allowedValues(LedgerType.class)),
                         fieldWithPath("category").type(STRING).description("카테고리. " + allowedValues(LedgerCategory.class)),
                         fieldWithPath("description").type(STRING).description("설명"),
-                        fieldWithPath("occurredOn").type(STRING).optional().description("발생 일자(yyyy-MM-dd)"),
+                        fieldWithPath("occurredOn").type(STRING).description("발생 일자(yyyy-MM-dd)"),
                         fieldWithPath("paymentMethod").type(STRING).description("결제 수단. " + allowedValues(PaymentMethod.class)),
                         fieldWithPath("memo").type(STRING).optional().description("메모(선택)")
                     )
@@ -269,7 +269,7 @@ class LedgerDocumentationTest {
                         fieldWithPath("type").type(STRING).description("유형. " + allowedValues(LedgerType.class)),
                         fieldWithPath("category").type(STRING).description("카테고리. " + allowedValues(LedgerCategory.class)),
                         fieldWithPath("description").type(STRING).description("설명"),
-                        fieldWithPath("occurredOn").type(STRING).optional().description("발생 일자(yyyy-MM-dd)"),
+                        fieldWithPath("occurredOn").type(STRING).description("발생 일자(yyyy-MM-dd)"),
                         fieldWithPath("paymentMethod").type(STRING).description("결제 수단. " + allowedValues(PaymentMethod.class)),
                         fieldWithPath("memo").type(STRING).optional().description("메모(선택)")
                     )
