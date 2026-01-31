@@ -6,6 +6,7 @@ import com.example.demo.domain.User;
 import com.example.demo.domain.UserRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +27,12 @@ public class UserService {
 
     @Transactional
     public void withdrawUser(Long userId) {
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            return;
+        }
+
+        User user = optionalUser.get();
 
         user.withdraw(LocalDateTime.now(clock));
         refreshTokenRepository.deleteByUserId(userId);
