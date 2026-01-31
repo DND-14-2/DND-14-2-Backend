@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.example.demo.application.dto.OauthUserInfo;
+import com.example.demo.domain.InvitationCode;
 import com.example.demo.domain.Nickname;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
@@ -62,9 +63,11 @@ class OauthServiceTest extends AbstractIntegrationTest {
         String providerId = "google-existing-user";
         String email = "existing@example.com";
         String picture = "https://example.com/existing.jpg";
+        Nickname nickname = new Nickname("test");
+        InvitationCode invitationCode = new InvitationCode("TEST");
 
         // 기존 사용자 DB에 저장
-        User user = new User(email, new Nickname("test"), "TEST", picture, provider, providerId);
+        User user = new User(email, nickname, invitationCode, picture, provider, providerId);
         User existingUser = userRepository.save(user);
         OauthUserInfo oauthUserInfo = new OauthUserInfo(providerId, email, picture);
 
