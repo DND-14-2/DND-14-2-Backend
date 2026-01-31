@@ -23,8 +23,8 @@ public class OauthController {
 
     @PostMapping("/oauth/login")
     public ResponseEntity<AuthTokenWebResponse> oauthLogin(@Valid @RequestBody OauthLoginWebRequest request) {
-        User userInfo = oauthService.getUserInfo(request.provider(), request.idToken());
-        TokenResponse token = authService.issueTokens(userInfo);
+        User user = oauthService.getUserInfo(request.provider(), request.idToken());
+        TokenResponse token = authService.issueTokens(user);
 
         return ResponseEntity.ok(AuthTokenWebResponse.from(token));
     }

@@ -1,9 +1,10 @@
-package com.example.demo.application;
+package com.example.demo.application.oauth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.example.demo.application.dto.TokenResponse;
-import com.example.demo.application.oauth.AuthService;
+import com.example.demo.domain.InvitationCode;
+import com.example.demo.domain.Nickname;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.RefreshToken;
 import com.example.demo.domain.RefreshTokenRepository;
@@ -28,7 +29,7 @@ class AuthServiceTest extends AbstractIntegrationTest {
     @Test
     void 토큰을_발급_받을_수_있다() {
         // given
-        User user = new User("test@email.com", "http://test.jpg", Provider.GOOGLE, "test-provider-id");
+        User user = new User("test@email.com", new Nickname("test"), new InvitationCode("INCODE"), "http://test.jpg", Provider.GOOGLE, "test-provider-id");
         User savedUser = userRepository.save(user);
 
         // when

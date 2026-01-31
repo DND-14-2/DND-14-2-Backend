@@ -1,0 +1,89 @@
+package com.example.demo.application.user;
+
+import com.example.demo.application.dto.OauthUserInfo;
+import com.example.demo.application.dto.UserInfo;
+import com.example.demo.domain.InvitationCode;
+import com.example.demo.domain.Nickname;
+import com.example.demo.domain.NicknameGenerator;
+import com.example.demo.domain.Provider;
+import com.example.demo.domain.RandomBytesSource;
+import com.example.demo.domain.User;
+import com.example.demo.domain.UserRepository;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class UserService {
+
+    private static final int MAX_RETRY = 10;
+
+    private final UserRepository userRepository;
+    private final NicknameGenerator nicknameGenerator;
+    private final RandomBytesSource randomBytesSource;
+
+    @Transactional(readOnly = true)
+    public UserInfo getUserInfo(Long userId) {
+        User user = findUserById(userId);
+        return new UserInfo(user.getId(), user.getNickname(), user.getLevel(), user.getProfile());
+    }
+
+    @Transactional
+    public User login(Provider provider, OauthUserInfo oauthUserInfo) {
+        return userRepository.findByProviderAndProviderId(provider, oauthUserInfo.providerId())
+            .orElseGet(() -> createUserWithRetries(provider, oauthUserInfo));
+    }
+
+    private User createUserWithRetries(Provider provider, OauthUserInfo info) {
+        for (int retry = 1; retry <= MAX_RETRY; retry++) {
+            Nickname nickname = nicknameGenerator.generate();
+            InvitationCode invitationCode = InvitationCode.generate(randomBytesSource);
+
+            User user = new User(
+                info.email(),
+                nickname,
+                invitationCode,
+                info.picture(),
+                provider,
+                info.providerId()
+            );
+
+            try {
+                // flush를 통해 유니크 제약 조건 검사
+                return userRepository.saveAndFlush(user);
+            } catch (DataIntegrityViolationException e) {
+                // 동시 로그인 경쟁으로 provider/providerId 유저가 이미 생성됐을 수 있음
+                Optional<User> existing = userRepository.findByProviderAndProviderId(provider, info.providerId());
+                if (existing.isPresent()) {
+                    return existing.get();
+                }
+                // 아직 없으면 닉네임/초대코드 유니크 충돌 가능성이 높으니 retry
+                log.warn("유저 닉네임/초대코드 중복으로 인한 재시도 횟수: {}/{}, userProvider: {}, userProviderId: {}",
+                    retry, MAX_RETRY, provider.name(), info.providerId(), e);
+            }
+        }
+        throw new IllegalStateException(
+            String.format(
+                "닉네임/초대코드 중복으로 인해 유저 생성에 실패했습니다. userProvider: %s, userProviderId: %s",
+                provider.name(), info.providerId()
+            )
+        );
+    }
+
+    @Transactional
+    public void changeNickname(Long userId, String nickname) {
+        User user = findUserById(userId);
+
+        user.changeNickname(nickname);
+    }
+
+    private User findUserById(Long userId) {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+    }
+}
