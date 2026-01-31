@@ -1,9 +1,9 @@
 package com.example.demo.infrastructure.controller;
 
 import com.example.demo.application.dto.TokenResponse;
-import com.example.demo.application.dto.UserInfo;
 import com.example.demo.application.oauth.AuthService;
 import com.example.demo.application.oauth.OauthService;
+import com.example.demo.domain.User;
 import com.example.demo.infrastructure.controller.dto.AuthTokenWebResponse;
 import com.example.demo.infrastructure.controller.dto.OauthLoginWebRequest;
 import com.example.demo.infrastructure.interceptor.UserId;
@@ -23,8 +23,8 @@ public class OauthController {
 
     @PostMapping("/oauth/login")
     public ResponseEntity<AuthTokenWebResponse> oauthLogin(@Valid @RequestBody OauthLoginWebRequest request) {
-        UserInfo userInfo = oauthService.getUserInfo(request.provider(), request.idToken());
-        TokenResponse token = authService.issueTokens(userInfo.userId());
+        User user = oauthService.getUserInfo(request.provider(), request.idToken());
+        TokenResponse token = authService.issueTokens(user);
 
         return ResponseEntity.ok(AuthTokenWebResponse.from(token));
     }

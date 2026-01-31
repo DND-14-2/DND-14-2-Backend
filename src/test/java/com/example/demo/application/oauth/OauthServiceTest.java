@@ -6,7 +6,6 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 import com.example.demo.application.dto.OauthUserInfo;
-import com.example.demo.application.dto.UserInfo;
 import com.example.demo.domain.Nickname;
 import com.example.demo.domain.Provider;
 import com.example.demo.domain.User;
@@ -42,15 +41,15 @@ class OauthServiceTest extends AbstractIntegrationTest {
         given(OidcIdTokenVerifierService.verifyAndGetUserInfo(provider, idToken)).willReturn(oauthUserInfo);
 
         // when
-        UserInfo result = sut.getUserInfo(provider, idToken);
+        User result = sut.getUserInfo(provider, idToken);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.userId()).isNotNull();
+        assertThat(result.getId()).isNotNull();
 
         assertThat(userRepository.findByProviderAndProviderId(provider, providerId))
                 .isPresent()
-                .hasValueSatisfying(user -> assertThat(user.getId()).isEqualTo(result.userId()));
+                .hasValueSatisfying(user -> assertThat(user.getId()).isEqualTo(result.getId()));
 
         verify(OidcIdTokenVerifierService).verifyAndGetUserInfo(provider, idToken);
     }
@@ -72,11 +71,11 @@ class OauthServiceTest extends AbstractIntegrationTest {
         given(OidcIdTokenVerifierService.verifyAndGetUserInfo(provider, idToken)).willReturn(oauthUserInfo);
 
         // when
-        UserInfo result = sut.getUserInfo(provider, idToken);
+        User result = sut.getUserInfo(provider, idToken);
 
         // then
         assertThat(result).isNotNull();
-        assertThat(result.userId()).isEqualTo(existingUser.getId());
+        assertThat(result.getId()).isEqualTo(existingUser.getId());
 
         verify(OidcIdTokenVerifierService).verifyAndGetUserInfo(provider, idToken);
     }
