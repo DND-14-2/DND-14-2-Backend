@@ -58,7 +58,7 @@ class OauthDocumentationTest {
         User user = new User(
                 "test@email.com",
                 new Nickname("test"),
-                new InvitationCode("TEST"),
+                new InvitationCode("INCODE"),
                 "https://profile/image.jpg",
                 Provider.KAKAO,
                 "provider-id"
