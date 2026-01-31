@@ -64,7 +64,7 @@ class OauthServiceTest extends AbstractIntegrationTest {
         String email = "existing@example.com";
         String picture = "https://example.com/existing.jpg";
         Nickname nickname = new Nickname("test");
-        InvitationCode invitationCode = new InvitationCode("TEST");
+        InvitationCode invitationCode = new InvitationCode("INCODE");
 
         // 기존 사용자 DB에 저장
         User user = new User(email, nickname, invitationCode, picture, provider, providerId);
