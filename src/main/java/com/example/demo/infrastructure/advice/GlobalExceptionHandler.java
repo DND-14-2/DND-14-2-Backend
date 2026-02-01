@@ -1,5 +1,6 @@
 package com.example.demo.infrastructure.advice;
 
+import com.example.demo.infrastructure.UnauthorizedException;
 import com.example.demo.infrastructure.advice.dto.ErrorResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,6 +30,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException e) {
         return error(HttpStatus.BAD_REQUEST, validationMessage(e));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException e) {
+        return error(HttpStatus.UNAUTHORIZED, e.getMessage());
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
