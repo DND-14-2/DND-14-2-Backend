@@ -2,6 +2,7 @@ package com.example.demo.infrastructure.oauth.token;
 
 import com.example.demo.application.oauth.TokenProvider;
 import com.example.demo.application.dto.TokenResponse;
+import com.example.demo.infrastructure.UnauthorizedException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -49,9 +50,9 @@ public class JwtProvider implements TokenProvider {
 
             return payload.get("userId", Long.class);
         } catch (ExpiredJwtException e) {
-            throw new RuntimeException();
+            throw new UnauthorizedException("인증되지 않은 사용자입니다.");
         } catch (JwtException e) {
-            throw new RuntimeException();
+            throw new UnauthorizedException("유효하지 않은 토큰 정보입니다.");
         }
     }
 }
